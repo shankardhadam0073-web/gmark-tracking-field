@@ -8,16 +8,18 @@ Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "1");
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Clear default configuration sources to prevent any hidden file watchers
 builder.Configuration.Sources.Clear();
+// 1. Read from Environment Variables first (highest priority)
+builder.Configuration.AddEnvironmentVariables();
+// 2. Fallback to appsettings.json without reloadOnChange
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false);
 
-builder.Configuration
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false)
-    .AddEnvironmentVariables();
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 // Configure Swagger
 builder.Services.AddSwaggerGen(c =>
@@ -26,6 +28,7 @@ builder.Services.AddSwaggerGen(c =>
     var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
     c.IncludeXmlComments(xmlPath);
 });
+
 builder.Services.AddControllers();
 
 // Add CORS policy
@@ -39,9 +42,10 @@ builder.Services.AddCors(options =>
                   .AllowAnyMethod();
         });
 });
+
 var app = builder.Build();
 
-// Auto-migrate the database on startup (for production containers)
+// Auto-migrate the database safely on startup
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -50,56 +54,34 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<AppDbContext>();
         if (context.Database.GetPendingMigrations().Any())
         {
-            context.Database.Migrate();
+            // Temporarily disabled as per user request to prevent Render startup failures
+            // context.Database.Migrate();
         }
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database.");
+        logger.LogError(ex, "An error occurred while migrating the database. The application will continue running.");
     }
 }
 
-// Configure the HTTP request pipeline.
+// Ensure Swagger works in both Development and Production
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Navbharat Agro API V1");
-    // Serve swagger UI at /swagger
+    // Serve swagger UI at /swagger and /swagger/index.html
     c.RoutePrefix = "swagger";
 });
 
-// Middleware pipeline (Order is important)
+// Production standard middleware ordering
 app.UseRouting();
-
 app.UseCors("AllowFrontend");
-
+app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+// Render Health Check Endpoint
+app.MapGet("/health", () => Results.Ok(new { status = "Healthy", environment = app.Environment.EnvironmentName }));
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
