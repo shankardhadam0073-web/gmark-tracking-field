@@ -1,0 +1,298 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { 
+  getEmployee, 
+  getEmployeePendingOrders, 
+  getEmployeeDeliveredOrders, 
+  getFieldVisits,
+  getEmployeeDailyReport,
+  getEmployeeMonthlyReport
+} from '../services/api';
+
+export default function EmployeeDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  
+  const [employee, setEmployee] = useState(null);
+  const [pendingOrders, setPendingOrders] = useState([]);
+  const [deliveredOrders, setDeliveredOrders] = useState([]);
+  const [fieldVisits, setFieldVisits] = useState([]);
+  
+  const [dailyReport, setDailyReport] = useState(null);
+  const [monthlyReport, setMonthlyReport] = useState(null);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchEmployeeData = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const empId = parseInt(id, 10);
+        
+        let empData;
+        try {
+          empData = await getEmployee(empId);
+        } catch (err) {
+          console.error("Employee not found:", err);
+          setError(`Employee not found.`);
+          setLoading(false);
+          return;
+        }
+
+        // Use Promise.all to fetch the rest of the data simultaneously
+        const [
+          pendingData, 
+          deliveredData, 
+          allVisits,
+          dailyData,
+          monthlyData
+        ] = await Promise.all([
+          getEmployeePendingOrders(empId).catch(() => []),
+          getEmployeeDeliveredOrders(empId).catch(() => []),
+          getFieldVisits().catch(() => []),
+          getEmployeeDailyReport(empId).catch(() => null), // Catch in case report is empty/404
+          getEmployeeMonthlyReport(empId).catch(() => null)
+        ]);
+        
+        setEmployee(empData);
+        setPendingOrders(pendingData);
+        setDeliveredOrders(deliveredData);
+        
+        // Filter field visits by selected employee ID
+        const empVisits = allVisits.filter(v => v.employeeId === empId);
+        setFieldVisits(empVisits);
+
+        setDailyReport(dailyData);
+        setMonthlyReport(monthlyData);
+        
+      } catch (err) {
+        console.error("Error fetching employee details:", err);
+        setError(`Failed to fetch data for this employee.`);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (id) fetchEmployeeData();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-slate-500 font-medium animate-pulse">Loading employee details...</p>
+      </div>
+    );
+  }
+
+  if (error || !employee) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-8">
+        <div className="max-w-7xl mx-auto bg-white p-6 rounded-2xl shadow border border-red-100 flex flex-col items-start gap-4">
+          <p className="text-red-500 font-medium">{error || "Employee not found."}</p>
+          <button 
+            onClick={() => navigate('/admin-dashboard')}
+            className="px-4 py-2 bg-slate-100 text-slate-700 font-medium rounded-lg hover:bg-slate-200 transition-colors"
+          >
+            &larr; Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Derive selected route from most recent activity
+  const selectedRoute = pendingOrders[0]?.route || fieldVisits[0]?.route || deliveredOrders[0]?.route || 'Not Set';
+  
+  // Extract values, fallback to 0 if report missing
+  const todaysOrders = dailyReport?.totalOrders || 0;
+  const todaysSales = dailyReport?.totalSales || 0;
+  const monthlySales = monthlyReport?.totalSales || 0;
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col animate-fade-in">
+      <header className="bg-blue-600 text-white pt-12 pb-20 px-6 rounded-b-3xl shadow-md">
+        <div className="max-w-7xl mx-auto flex items-center gap-4">
+          <button 
+            onClick={() => navigate('/admin-dashboard')}
+            className="p-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full transition-colors active:scale-95"
+            title="Back to Dashboard"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </button>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">{employee.name}</h1>
+            <p className="text-blue-100 font-medium mt-2">Employee Detail View &bull; Code: {employee.employeeCode}</p>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 -mt-10 mb-12 relative z-10 space-y-8">
+        
+        {/* Info & Summary Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-100 flex flex-col justify-center items-center transform transition-transform hover:-translate-y-1">
+            <h3 className="text-sm font-medium text-slate-500 mb-1">Selected Route</h3>
+            <p className="text-xl font-bold text-slate-800 text-center truncate w-full">{selectedRoute}</p>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-100 flex flex-col justify-center items-center transform transition-transform hover:-translate-y-1">
+            <h3 className="text-sm font-medium text-slate-500 mb-1">Today's Orders</h3>
+            <p className="text-3xl font-bold text-blue-600">{todaysOrders}</p>
+          </div>
+
+          <div className="bg-amber-500 rounded-2xl shadow-lg p-6 text-white flex flex-col justify-center items-center transform transition-transform hover:-translate-y-1">
+            <h3 className="text-sm font-medium text-amber-100 mb-1">Pending Orders</h3>
+            <p className="text-4xl font-bold">{pendingOrders.length}</p>
+          </div>
+
+          <div className="bg-emerald-600 rounded-2xl shadow-lg p-6 text-white flex flex-col justify-center items-center transform transition-transform hover:-translate-y-1">
+            <h3 className="text-sm font-medium text-emerald-100 mb-1">Delivered Orders</h3>
+            <p className="text-4xl font-bold">{deliveredOrders.length}</p>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-100 flex flex-col justify-center items-center transform transition-transform hover:-translate-y-1">
+            <h3 className="text-sm font-medium text-slate-500 mb-1">Today's Sales</h3>
+            <p className="text-3xl font-bold text-slate-800">₹{todaysSales}</p>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-100 flex flex-col justify-center items-center transform transition-transform hover:-translate-y-1">
+            <h3 className="text-sm font-medium text-slate-500 mb-1">Monthly Sales</h3>
+            <p className="text-3xl font-bold text-slate-800">₹{monthlySales}</p>
+          </div>
+
+          <div className="bg-purple-600 rounded-2xl shadow-lg p-6 text-white flex flex-col justify-center items-center md:col-span-2 lg:col-span-2 transform transition-transform hover:-translate-y-1">
+            <h3 className="text-sm font-medium text-purple-100 mb-1">Total Field Visits</h3>
+            <p className="text-4xl font-bold">{fieldVisits.length}</p>
+          </div>
+
+        </div>
+
+        {/* Data Tables */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* Pending Orders Table */}
+          <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden flex flex-col">
+            <div className="bg-slate-50 p-6 border-b border-slate-100">
+              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                Pending Orders
+              </h3>
+            </div>
+            <div className="overflow-x-auto max-h-96 flex-1">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead className="sticky top-0 bg-slate-100 shadow-sm z-10">
+                  <tr className="text-slate-600">
+                    <th className="p-4 font-semibold">ID</th>
+                    <th className="p-4 font-semibold">Customer</th>
+                    <th className="p-4 font-semibold">Date</th>
+                    <th className="p-4 font-semibold text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingOrders.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="p-8 text-center text-slate-500 border-b border-slate-100">No pending orders.</td>
+                    </tr>
+                  ) : (
+                    pendingOrders.map(order => (
+                      <tr key={order.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                        <td className="p-4 font-medium text-slate-800">#{order.id}</td>
+                        <td className="p-4 text-slate-600">{order.customerName}</td>
+                        <td className="p-4 text-slate-600">{order.bookingDate}</td>
+                        <td className="p-4 text-amber-600 font-medium text-right">₹{order.grandTotal}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Delivered Orders Table */}
+          <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden flex flex-col">
+            <div className="bg-slate-50 p-6 border-b border-slate-100">
+              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                Delivered Orders
+              </h3>
+            </div>
+            <div className="overflow-x-auto max-h-96 flex-1">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead className="sticky top-0 bg-slate-100 shadow-sm z-10">
+                  <tr className="text-slate-600">
+                    <th className="p-4 font-semibold">ID</th>
+                    <th className="p-4 font-semibold">Customer</th>
+                    <th className="p-4 font-semibold">Date</th>
+                    <th className="p-4 font-semibold text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {deliveredOrders.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="p-8 text-center text-slate-500 border-b border-slate-100">No delivered orders.</td>
+                    </tr>
+                  ) : (
+                    deliveredOrders.map(order => (
+                      <tr key={order.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                        <td className="p-4 font-medium text-slate-800">#{order.id}</td>
+                        <td className="p-4 text-slate-600">{order.customerName}</td>
+                        <td className="p-4 text-slate-600">{order.bookingDate}</td>
+                        <td className="p-4 text-emerald-600 font-medium text-right">₹{order.grandTotal}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Field Visit History Table */}
+          <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden lg:col-span-2 flex flex-col">
+            <div className="bg-slate-50 p-6 border-b border-slate-100">
+              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                Field Visit History
+              </h3>
+            </div>
+            <div className="overflow-x-auto max-h-96 flex-1">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead className="sticky top-0 bg-slate-100 shadow-sm z-10">
+                  <tr className="text-slate-600">
+                    <th className="p-4 font-semibold">ID</th>
+                    <th className="p-4 font-semibold">Customer</th>
+                    <th className="p-4 font-semibold">Village</th>
+                    <th className="p-4 font-semibold">Product</th>
+                    <th className="p-4 font-semibold">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fieldVisits.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="p-8 text-center text-slate-500 border-b border-slate-100">No field visits recorded.</td>
+                    </tr>
+                  ) : (
+                    fieldVisits.map(visit => (
+                      <tr key={visit.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                        <td className="p-4 font-medium text-slate-800">#{visit.id}</td>
+                        <td className="p-4 text-slate-600">{visit.customerName}</td>
+                        <td className="p-4 text-slate-600">{visit.village || '-'}</td>
+                        <td className="p-4 text-blue-600 font-medium">{visit.productName || 'N/A'}</td>
+                        <td className="p-4 text-slate-600">{visit.visitDate} {visit.visitTime}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  );
+}

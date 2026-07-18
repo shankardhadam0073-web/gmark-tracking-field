@@ -1,0 +1,20 @@
+{
+  "id": 12,
+  "employeeId": 999,
+  "assignedBy": "Testing Employee",
+  "route": "Updated Route",
+  "customerName": "Test Customer",
+  "village": "Test Village",
+  "mobileNumber": "1234567890",
+  "customerCategory": "Dealer",
+  "bookingDate": "2026-07-16",
+  "bookingTime": "12:00:00",
+  "products": [
+    {
+      "id": 0,
+      "productName": "New Cattle Feed",
+      "unitPrice": 15.0,
+      "quantity": 3
+    }
+  ]
+}

@@ -1,0 +1,128 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { loginEmployee } from '../services/api';
+
+export default function EmployeePassword() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authError, setAuthError] = useState('');
+
+  const { employeeId, employeeName, employeeRoute } = location.state || {};
+
+  useEffect(() => {
+    // If no state is passed, redirect back to selection
+    if (employeeId === undefined || employeeId === null || !employeeName || !employeeRoute) {
+      navigate('/employee-selection', { replace: true });
+    }
+  }, [employeeId, employeeName, employeeRoute, navigate]);
+
+  const handleLogin = async (e) => {
+    if (e) e.preventDefault();
+    setAuthError('');
+    setIsSubmitting(true);
+    
+    try {
+      const response = await loginEmployee({ employeeId, password });
+      
+      // Save info on success
+      localStorage.setItem('employeeId', response.employeeId.toString());
+      localStorage.setItem('employeeName', response.employeeName);
+      localStorage.setItem('employeeToken', response.token);
+      localStorage.setItem('employeeRoute', employeeRoute);
+      
+      navigate('/employee-dashboard');
+    } catch (err) {
+      setAuthError(err.response?.data?.message || 'Invalid Password');
+      setIsSubmitting(false);
+    }
+  };
+
+  if (employeeId === undefined || employeeId === null) return null;
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 md:p-8">
+      <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-lg w-full text-center border border-slate-100">
+        
+        <div className="bg-blue-600 text-white h-20 w-20 rounded-full mx-auto flex items-center justify-center text-2xl font-bold mb-6 shadow-sm">
+          NAS
+        </div>
+
+        <h1 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">
+          Employee Login
+        </h1>
+        <p className="text-slate-500 mb-8 text-sm">Please verify your identity to continue</p>
+
+        {authError && (
+          <div className="mb-6 p-3 bg-red-50 text-red-600 rounded-xl text-sm font-medium">
+            {authError}
+          </div>
+        )}
+
+        <div className="space-y-6 text-left">
+          
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="mb-3">
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Employee</label>
+              <div className="text-lg font-medium text-slate-900">{employeeName}</div>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Selected Route</label>
+              <div className="text-md text-slate-700">{employeeRoute}</div>
+            </div>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
+              <input 
+                autoFocus
+                required 
+                type="password" 
+                placeholder="Enter your password"
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-center text-xl tracking-[0.25em] transition-shadow" 
+              />
+            </div>
+
+            <div className="flex gap-4 pt-2">
+              <button 
+                type="button" 
+                onClick={() => navigate('/employee-selection')}
+                disabled={isSubmitting}
+                className="flex-1 py-4 px-6 rounded-xl text-lg font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all flex justify-center items-center gap-2"
+              >
+                Back
+              </button>
+              
+              <button 
+                type="submit" 
+                disabled={isSubmitting || !password}
+                className={`flex-[2] py-4 px-6 rounded-xl text-lg font-semibold shadow-md transition-all flex justify-center items-center gap-2 ${
+                  isSubmitting || !password
+                    ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg'
+                }`}
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Verifying...
+                  </span>
+                ) : (
+                  'Continue'
+                )}
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  );
+}
