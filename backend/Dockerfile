@@ -17,13 +17,15 @@ WORKDIR /src
 
 # Copy the project file and restore dependencies
 COPY ["NavbharatAgroAPI.csproj", "./"]
-RUN dotnet restore "./NavbharatAgroAPI.csproj"
+RUN dotnet nuget locals all --clear
+RUN dotnet restore "./NavbharatAgroAPI.csproj" --force
 
 # Copy the rest of the source code
 COPY . .
 
-# Build the project
-RUN dotnet build "NavbharatAgroAPI.csproj" -c Release -o /app/build
+# Build the project (clean)
+RUN rm -rf bin obj
+RUN dotnet build "NavbharatAgroAPI.csproj" -c Release -o /app/build --no-restore
 
 # Publish the project
 FROM build AS publish

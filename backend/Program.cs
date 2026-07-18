@@ -21,13 +21,16 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// Configure Swagger
-builder.Services.AddSwaggerGen(c =>
+// Configure Swagger (Development Only)
+if (builder.Environment.IsDevelopment())
 {
-    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
-    c.IncludeXmlComments(xmlPath);
-});
+    builder.Services.AddSwaggerGen(c =>
+    {
+        var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
+        c.IncludeXmlComments(xmlPath);
+    });
+}
 
 builder.Services.AddControllers();
 
@@ -65,14 +68,17 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Ensure Swagger works in both Development and Production
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+// Ensure Swagger works in Development Only
+if (app.Environment.IsDevelopment())
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Navbharat Agro API V1");
-    // Serve swagger UI at /swagger and /swagger/index.html
-    c.RoutePrefix = "swagger";
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Navbharat Agro API V1");
+        // Serve swagger UI at /swagger and /swagger/index.html
+        c.RoutePrefix = "swagger";
+    });
+}
 
 // Production standard middleware ordering
 app.UseRouting();

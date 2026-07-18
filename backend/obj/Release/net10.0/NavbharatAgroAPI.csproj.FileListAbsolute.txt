@@ -24,7 +24,6 @@ C:\gmarktrackingfield\backend\bin\Release\net10.0\NavbharatAgroAPI.pdb
 C:\gmarktrackingfield\backend\bin\Release\net10.0\NavbharatAgroAPI.xml
 C:\gmarktrackingfield\backend\bin\Release\net10.0\BCrypt-Net-Next.dll
 C:\gmarktrackingfield\backend\bin\Release\net10.0\Humanizer.dll
-C:\gmarktrackingfield\backend\bin\Release\net10.0\Microsoft.AspNetCore.OpenApi.dll
 C:\gmarktrackingfield\backend\bin\Release\net10.0\Microsoft.Build.Framework.dll
 C:\gmarktrackingfield\backend\bin\Release\net10.0\Microsoft.CodeAnalysis.dll
 C:\gmarktrackingfield\backend\bin\Release\net10.0\Microsoft.CodeAnalysis.CSharp.dll
