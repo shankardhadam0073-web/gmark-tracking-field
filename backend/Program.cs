@@ -1,6 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using NavbharatAgroAPI.Data;
 
+// Disable default configuration reloads which trigger inotify watchers on Linux (Render)
+Environment.SetEnvironmentVariable("DOTNET_hostBuilder__reloadConfigOnChange", "false");
+// Force polling instead of native inotify watchers globally if any watcher is still created
+Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "1");
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.Sources.Clear();
