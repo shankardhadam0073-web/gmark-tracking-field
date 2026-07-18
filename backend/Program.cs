@@ -3,6 +3,13 @@ using NavbharatAgroAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.Sources.Clear();
+
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false)
+    .AddEnvironmentVariables();
+
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
