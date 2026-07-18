@@ -36,12 +36,40 @@ builder.Services.AddCors(options =>
 });
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-    app.UseSwagger();
-    app.UseSwaggerUI();
+// Auto-migrate the database on startup (for production containers)
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        if (context.Database.GetPendingMigrations().Any())
+        {
+            context.Database.Migrate();
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+    }
+}
 
+// Configure the HTTP request pipeline.
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Navbharat Agro API V1");
+    // Serve swagger UI at /swagger
+    c.RoutePrefix = "swagger";
+});
+
+// Middleware pipeline (Order is important)
+app.UseRouting();
 
 app.UseCors("AllowFrontend");
+
+app.UseAuthorization();
 
 app.MapControllers();
 

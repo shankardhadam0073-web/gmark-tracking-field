@@ -1,0 +1,23 @@
+{
+  "employeeId": 999,
+  "assignedBy": "System",
+  "route": "Test Route A",
+  "customerName": "John Doe",
+  "village": "Test Village",
+  "mobileNumber": "1234567890",
+  "customerCategory": "Retail",
+  "bookingDate": "2026-07-16",
+  "bookingTime": "14:30:00",
+  "products": [
+    {
+      "productName": "Fertilizer A",
+      "unitPrice": 10.50,
+      "quantity": 2
+    },
+    {
+      "productName": "Pesticide B",
+      "unitPrice": 5.00,
+      "quantity": 4
+    }
+  ]
+}
