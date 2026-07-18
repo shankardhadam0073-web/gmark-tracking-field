@@ -44,7 +44,6 @@ var app = builder.Build();
 app.UseCors("AllowFrontend");
 
 app.MapControllers();
-app.Run();
 
 var summaries = new[]
 {
