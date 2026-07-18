@@ -281,3 +281,4 @@ C:\gmarktrackingfield\backend\obj\Debug\net10.0\NavbharatAgroAPI.pdb
 C:\gmarktrackingfield\backend\obj\Debug\net10.0\NavbharatAgroAPI.genruntimeconfig.cache
 C:\gmarktrackingfield\backend\obj\Debug\net10.0\ref\NavbharatAgroAPI.dll
 C:\gmarktrackingfield\backend\bin\Debug\net10.0\BCrypt-Net-Next.dll
+C:\gmarktrackingfield\backend\obj\Debug\net10.0\NavbharatAgroAPI.sourcelink.json

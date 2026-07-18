@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\gmarktrackingfield\\Backend\\NavbharatAgroAPI.csproj": {}
+    "C:\\gmarktrackingfield\\backend\\NavbharatAgroAPI.csproj": {}
   },
   "projects": {
-    "C:\\gmarktrackingfield\\Backend\\NavbharatAgroAPI.csproj": {
+    "C:\\gmarktrackingfield\\backend\\NavbharatAgroAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\gmarktrackingfield\\Backend\\NavbharatAgroAPI.csproj",
+        "projectUniqueName": "C:\\gmarktrackingfield\\backend\\NavbharatAgroAPI.csproj",
         "projectName": "NavbharatAgroAPI",
-        "projectPath": "C:\\gmarktrackingfield\\Backend\\NavbharatAgroAPI.csproj",
+        "projectPath": "C:\\gmarktrackingfield\\backend\\NavbharatAgroAPI.csproj",
         "packagesPath": "C:\\Users\\Shree\\.nuget\\packages\\",
-        "outputPath": "C:\\gmarktrackingfield\\Backend\\obj\\",
+        "outputPath": "C:\\gmarktrackingfield\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
