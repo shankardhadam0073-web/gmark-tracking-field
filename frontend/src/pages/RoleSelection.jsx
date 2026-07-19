@@ -23,12 +23,7 @@ export default function RoleSelection() {
         
         <button 
           onClick={() => {
-            const hasEmployee = localStorage.getItem('employeeName');
-            if (hasEmployee) {
-              navigate('/employee-dashboard');
-            } else {
-              navigate('/employee-selection');
-            }
+            navigate('/employee-selection');
           }}
           className="w-full bg-white rounded-2xl shadow-lg hover:shadow-xl p-8 border border-slate-100 transition-all duration-300 transform hover:-translate-y-1 text-left flex flex-col items-center sm:flex-row sm:items-start gap-6 group"
         >
