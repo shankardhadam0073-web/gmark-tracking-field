@@ -345,7 +345,6 @@ export default function OrderBookings() {
                           type="number" 
                           value={currentUnitPrice || ''}
                           readOnly
-                          disabled
                         />
                       </div>
 
