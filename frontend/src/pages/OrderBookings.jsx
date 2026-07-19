@@ -343,7 +343,7 @@ export default function OrderBookings() {
                         <Input 
                           label="Unit Price (₹)" 
                           type="number" 
-                          value={currentUnitPrice || ''}
+                          value={currentUnitPrice}
                           readOnly
                         />
                       </div>
