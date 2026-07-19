@@ -3,8 +3,8 @@ import axios from 'axios';
 // Debug environment variable
 console.log("VITE_API_URL is:", import.meta.env.VITE_API_URL);
 
-// Get the URL from env, fallback to localhost
-let rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5159/api';
+// Get the URL from env, fallback to live Railway backend
+let rawUrl = import.meta.env.VITE_API_URL || 'https://adaptable-gentleness-production-6d24.up.railway.app/api';
 
 // Ensure the URL always ends with /api to prevent missing path issues
 if (!rawUrl.endsWith('/api')) {
