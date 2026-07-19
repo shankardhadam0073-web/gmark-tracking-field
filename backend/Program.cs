@@ -28,7 +28,10 @@ if (builder.Environment.IsDevelopment())
     {
         var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
         var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
-        c.IncludeXmlComments(xmlPath);
+        if (System.IO.File.Exists(xmlPath))
+        {
+            c.IncludeXmlComments(xmlPath);
+        }
     });
 }
 
@@ -83,8 +86,6 @@ if (app.Environment.IsDevelopment())
 // Production standard middleware ordering
 app.UseRouting();
 app.UseCors("AllowFrontend");
-app.UseAuthentication();
-app.UseAuthorization();
 app.MapControllers();
 
 // Render Health Check Endpoint
