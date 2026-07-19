@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Ensure the backend runs on port 5159 per launchSettings.json
-const BASE_URL = 'http://localhost:5159/api';
+// Use environment variable for production, fallback to local for development
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5159/api';
 
 const api = axios.create({
   baseURL: BASE_URL,
