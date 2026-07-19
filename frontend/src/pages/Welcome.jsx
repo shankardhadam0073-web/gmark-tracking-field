@@ -39,9 +39,9 @@ export default function Welcome() {
         {/* Logo Placeholder */}
         <div 
           onClick={handleLogoClick}
-          className="bg-blue-600 text-white h-20 w-20 rounded-full mx-auto flex items-center justify-center text-2xl font-bold mb-6 shadow-md cursor-pointer select-none active:scale-95 transition-transform"
+          className="cursor-pointer active:scale-95 transition-transform"
         >
-          NAS
+          <img src="/logo.jpg" alt="Gmark-Tracking-Field Logo" className="h-28 w-28 mx-auto mb-6 rounded-2xl shadow-lg object-contain bg-white" />
         </div>
 
         {/* Header Section */}

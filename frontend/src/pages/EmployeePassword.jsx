@@ -45,9 +45,7 @@ export default function EmployeePassword() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 md:p-8">
       <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-lg w-full text-center border border-slate-100">
         
-        <div className="bg-blue-600 text-white h-20 w-20 rounded-full mx-auto flex items-center justify-center text-2xl font-bold mb-6 shadow-sm">
-          NAS
-        </div>
+        <img src="/logo.jpg" alt="Gmark-Tracking-Field Logo" className="h-28 w-28 mx-auto mb-6 rounded-2xl shadow-lg object-contain bg-white" />
 
         <h1 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">
           Employee Login

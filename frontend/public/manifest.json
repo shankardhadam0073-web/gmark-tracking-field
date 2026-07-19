@@ -1,17 +1,11 @@
 {
-  "short_name": "NAS App",
-  "name": "Navbharat Agro Service",
-  "description": "Navbharat Agro Service - Order Booking and Field Visits",
+  "short_name": "Gmark-Tracking-Field",
+  "name": "Gmark-Tracking-Field",
+  "description": "Gmark-Tracking-Field - Order Booking and Field Visits",
   "icons": [
     {
-      "src": "/icon-192.png",
-      "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icon-512.png",
-      "type": "image/png",
+      "src": "/logo.jpg",
+      "type": "image/jpeg",
       "sizes": "512x512",
       "purpose": "any maskable"
     }
