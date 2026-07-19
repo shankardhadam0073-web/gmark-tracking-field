@@ -103,8 +103,9 @@ export default function OrderBookings() {
   const calculateGrandTotal = () => {
     return formData.products.reduce((sum, product) => {
       const qty = parseInt(product.quantity) || 0;
-      const price = getUnitPrice(product.productName, formData.customerCategory);
-      return sum + (qty * price);
+      const defaultUnitPrice = getUnitPrice(product.productName, formData.customerCategory);
+      const activeUnitPrice = product.unitPrice !== undefined ? product.unitPrice : defaultUnitPrice;
+      return sum + (qty * (parseFloat(activeUnitPrice) || 0));
     }, 0);
   };
 
@@ -320,8 +321,9 @@ export default function OrderBookings() {
 
             <div className="space-y-5">
               {formData.products.map((product, index) => {
-                const currentUnitPrice = getUnitPrice(product.productName, formData.customerCategory);
-                const rowTotal = (parseInt(product.quantity) || 0) * currentUnitPrice;
+                const defaultUnitPrice = getUnitPrice(product.productName, formData.customerCategory);
+                const activeUnitPrice = product.unitPrice !== undefined ? product.unitPrice : defaultUnitPrice;
+                const rowTotal = (parseInt(product.quantity) || 0) * (parseFloat(activeUnitPrice) || 0);
                 
                 return (
                   <div key={index} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative group transition-shadow hover:shadow-md">
@@ -333,18 +335,24 @@ export default function OrderBookings() {
                           label="Product Name" 
                           options={productOptions}
                           value={product.productName ?? ''}
-                          onChange={(e) => handleProductChange(index, 'productName', e.target.value)}
+                          onChange={(e) => {
+                            handleProductChange(index, 'productName', e.target.value);
+                            // Reset custom unit price when product changes
+                            handleProductChange(index, 'unitPrice', undefined);
+                          }}
                           error={errors[`productName_${index}`]}
                         />
                       </div>
                       
-                      {/* 2. Unit Price (Read Only Display) */}
+                      {/* 2. Unit Price (Editable) */}
                       <div className="md:col-span-3">
                         <Input 
                           label="Unit Price (₹)" 
                           type="number" 
-                          value={currentUnitPrice}
-                          readOnly
+                          step="0.01"
+                          min="0"
+                          value={activeUnitPrice === 0 && product.unitPrice === undefined ? '' : activeUnitPrice}
+                          onChange={(e) => handleProductChange(index, 'unitPrice', e.target.value ? parseFloat(e.target.value) : '')}
                         />
                       </div>
 
