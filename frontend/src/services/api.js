@@ -1,7 +1,18 @@
 import axios from 'axios';
 
-// Use environment variable for production, fallback to local for development
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5159/api';
+// Debug environment variable
+console.log("VITE_API_URL is:", import.meta.env.VITE_API_URL);
+
+// Get the URL from env, fallback to localhost
+let rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5159/api';
+
+// Ensure the URL always ends with /api to prevent missing path issues
+if (!rawUrl.endsWith('/api')) {
+  // Remove trailing slash if present, then append /api
+  rawUrl = rawUrl.replace(/\/$/, '') + '/api';
+}
+
+const BASE_URL = rawUrl;
 
 const api = axios.create({
   baseURL: BASE_URL,
