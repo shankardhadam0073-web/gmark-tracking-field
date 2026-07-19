@@ -78,9 +78,11 @@ export default function OrderBookings() {
   };
 
   const handleProductChange = (index, field, value) => {
-    const updatedProducts = [...formData.products];
-    updatedProducts[index] = { ...updatedProducts[index], [field]: value };
-    setFormData(prev => ({ ...prev, products: updatedProducts }));
+    setFormData(prev => {
+      const updatedProducts = [...prev.products];
+      updatedProducts[index] = { ...updatedProducts[index], [field]: value };
+      return { ...prev, products: updatedProducts };
+    });
     
     const errorKey = `${field}_${index}`;
     if (errors[errorKey]) setErrors(prev => ({ ...prev, [errorKey]: null }));
