@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 import { 
   getEmployee, 
   getEmployeePendingOrders, 
@@ -110,6 +111,51 @@ export default function EmployeeDetail() {
   const todaysSales = dailyReport?.totalSales || 0;
   const monthlySales = monthlyReport?.totalSales || 0;
 
+  const handleDownloadExcel = () => {
+    const wb = XLSX.utils.book_new();
+
+    const pendingData = pendingOrders.map(order => ({
+      'Order ID': order.id,
+      'Customer Name': order.customerName,
+      'Mobile Number': order.mobileNumber,
+      'Village': order.village,
+      'Category': order.customerCategory,
+      'Route': order.route,
+      'Booking Date': order.bookingDate,
+      'Grand Total': order.grandTotal
+    }));
+    const wsPending = XLSX.utils.json_to_sheet(pendingData);
+    XLSX.utils.book_append_sheet(wb, wsPending, "Pending Orders");
+
+    const deliveredData = deliveredOrders.map(order => ({
+      'Order ID': order.id,
+      'Customer Name': order.customerName,
+      'Mobile Number': order.mobileNumber,
+      'Village': order.village,
+      'Category': order.customerCategory,
+      'Route': order.route,
+      'Booking Date': order.bookingDate,
+      'Grand Total': order.grandTotal
+    }));
+    const wsDelivered = XLSX.utils.json_to_sheet(deliveredData);
+    XLSX.utils.book_append_sheet(wb, wsDelivered, "Delivered Orders");
+
+    const visitsData = fieldVisits.map(visit => ({
+      'Visit ID': visit.id,
+      'Customer Name': visit.customerName,
+      'Mobile Number': visit.mobileNumber,
+      'Village': visit.village,
+      'Product Name': visit.productName,
+      'Discussion': visit.discussion,
+      'Visit Date': visit.visitDate,
+      'Visit Time': visit.visitTime
+    }));
+    const wsVisits = XLSX.utils.json_to_sheet(visitsData);
+    XLSX.utils.book_append_sheet(wb, wsVisits, "Field Visits");
+
+    XLSX.writeFile(wb, `${employee.name.replace(/\s+/g, '_')}_History.xlsx`);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col animate-fade-in">
       <header className="bg-blue-600 text-white pt-12 pb-20 px-6 rounded-b-3xl shadow-md">
@@ -123,10 +169,20 @@ export default function EmployeeDetail() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">{employee.name}</h1>
             <p className="text-blue-100 font-medium mt-2">Employee Detail View &bull; Code: {employee.employeeCode}</p>
           </div>
+          <button 
+            onClick={handleDownloadExcel}
+            className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl font-medium transition-colors active:scale-95"
+            title="Download Excel"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span className="hidden sm:inline">Export to Excel</span>
+          </button>
         </div>
       </header>
 
