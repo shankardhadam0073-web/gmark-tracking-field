@@ -1,15 +1,8 @@
 # Use the ASP.NET Core runtime image for the final stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
-
-RUN apt-get update && \
-    apt-get install -y libkrb5-3 && \
-    rm -rf /var/lib/apt/lists/*
-
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
-ENV DOTNET_hostBuilder__reloadConfigOnChange=false
-ENV DOTNET_USE_POLLING_FILE_WATCHER=1
 
 # Use the .NET SDK image to build the app
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
