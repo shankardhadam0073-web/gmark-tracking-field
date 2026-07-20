@@ -35,6 +35,7 @@ namespace NavbharatAgroAPI.Controllers
                 
                 var employees = await _context.Employees.ToListAsync();
                 var orderBookings = await _context.OrderBookings
+                    .Include(o => o.OrderProducts)
                     .Where(o => o.BookingDate == today)
                     .ToListAsync();
                 var fieldVisits = await _context.FieldVisits
@@ -50,6 +51,13 @@ namespace NavbharatAgroAPI.Controllers
                     var deliveredOrders = empOrders.Count(o => o.OrderStatus == "Delivered");
                     var totalSales = empOrders.Sum(o => o.GrandTotal);
                     var totalFieldVisits = fieldVisits.Count(v => v.EmployeeId == emp.Id);
+                    
+                    var totalQuantitySold = empOrders.SelectMany(o => o.OrderProducts).Sum(p => p.Quantity);
+                    var productsSoldList = empOrders.SelectMany(o => o.OrderProducts)
+                        .GroupBy(p => p.ProductName)
+                        .Select(g => $"{g.Key} ({g.Sum(x => x.Quantity)})")
+                        .ToList();
+                    var productsSoldString = productsSoldList.Any() ? string.Join(", ", productsSoldList) : "-";
 
                     reports.Add(new DailyReportResponseDto
                     {
@@ -59,7 +67,9 @@ namespace NavbharatAgroAPI.Controllers
                         PendingOrders = pendingOrders,
                         DeliveredOrders = deliveredOrders,
                         TotalSales = totalSales,
-                        TotalFieldVisits = totalFieldVisits
+                        TotalFieldVisits = totalFieldVisits,
+                        TotalQuantitySold = totalQuantitySold,
+                        ProductsSold = productsSoldString
                     });
                 }
 
@@ -89,6 +99,7 @@ namespace NavbharatAgroAPI.Controllers
                 }
 
                 var empOrders = await _context.OrderBookings
+                    .Include(o => o.OrderProducts)
                     .Where(o => o.EmployeeId == employeeId && o.BookingDate == today)
                     .ToListAsync();
                 
@@ -98,6 +109,13 @@ namespace NavbharatAgroAPI.Controllers
                 var pendingOrders = empOrders.Count(o => o.OrderStatus == "Pending");
                 var deliveredOrders = empOrders.Count(o => o.OrderStatus == "Delivered");
                 var totalSales = empOrders.Sum(o => o.GrandTotal);
+                
+                var totalQuantitySold = empOrders.SelectMany(o => o.OrderProducts).Sum(p => p.Quantity);
+                var productsSoldList = empOrders.SelectMany(o => o.OrderProducts)
+                    .GroupBy(p => p.ProductName)
+                    .Select(g => $"{g.Key} ({g.Sum(x => x.Quantity)})")
+                    .ToList();
+                var productsSoldString = productsSoldList.Any() ? string.Join(", ", productsSoldList) : "-";
 
                 var report = new DailyReportResponseDto
                 {
@@ -107,7 +125,9 @@ namespace NavbharatAgroAPI.Controllers
                     PendingOrders = pendingOrders,
                     DeliveredOrders = deliveredOrders,
                     TotalSales = totalSales,
-                    TotalFieldVisits = totalFieldVisits
+                    TotalFieldVisits = totalFieldVisits,
+                    TotalQuantitySold = totalQuantitySold,
+                    ProductsSold = productsSoldString
                 };
 
                 return Ok(report);
@@ -147,6 +167,12 @@ namespace NavbharatAgroAPI.Controllers
                     var totalSales = empOrders.Sum(o => o.GrandTotal);
                     var totalFieldVisits = fieldVisits.Count(v => v.EmployeeId == emp.Id);
                     var totalQuantitySold = empOrders.SelectMany(o => o.OrderProducts).Sum(p => p.Quantity);
+                    
+                    var productsSoldList = empOrders.SelectMany(o => o.OrderProducts)
+                        .GroupBy(p => p.ProductName)
+                        .Select(g => $"{g.Key} ({g.Sum(x => x.Quantity)})")
+                        .ToList();
+                    var productsSoldString = productsSoldList.Any() ? string.Join(", ", productsSoldList) : "-";
 
                     reports.Add(new MonthlyReportResponseDto
                     {
@@ -157,7 +183,8 @@ namespace NavbharatAgroAPI.Controllers
                         DeliveredOrders = deliveredOrders,
                         TotalSales = totalSales,
                         TotalFieldVisits = totalFieldVisits,
-                        TotalQuantitySold = totalQuantitySold
+                        TotalQuantitySold = totalQuantitySold,
+                        ProductsSold = productsSoldString
                     });
                 }
 
@@ -198,6 +225,12 @@ namespace NavbharatAgroAPI.Controllers
                 var deliveredOrders = empOrders.Count(o => o.OrderStatus == "Delivered");
                 var totalSales = empOrders.Sum(o => o.GrandTotal);
                 var totalQuantitySold = empOrders.SelectMany(o => o.OrderProducts).Sum(p => p.Quantity);
+                
+                var productsSoldList = empOrders.SelectMany(o => o.OrderProducts)
+                    .GroupBy(p => p.ProductName)
+                    .Select(g => $"{g.Key} ({g.Sum(x => x.Quantity)})")
+                    .ToList();
+                var productsSoldString = productsSoldList.Any() ? string.Join(", ", productsSoldList) : "-";
 
                 var report = new MonthlyReportResponseDto
                 {
@@ -208,7 +241,8 @@ namespace NavbharatAgroAPI.Controllers
                     DeliveredOrders = deliveredOrders,
                     TotalSales = totalSales,
                     TotalFieldVisits = totalFieldVisits,
-                    TotalQuantitySold = totalQuantitySold
+                    TotalQuantitySold = totalQuantitySold,
+                    ProductsSold = productsSoldString
                 };
 
                 return Ok(report);

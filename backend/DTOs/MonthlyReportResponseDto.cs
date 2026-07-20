@@ -10,5 +10,6 @@ namespace NavbharatAgroAPI.DTOs
         public decimal TotalSales { get; set; }
         public int TotalFieldVisits { get; set; }
         public int TotalQuantitySold { get; set; }
+        public string ProductsSold { get; set; } = string.Empty;
     }
 }

@@ -237,6 +237,8 @@ export default function AdminDashboard() {
                       <th className="p-4 font-semibold text-amber-600">Pending</th>
                       <th className="p-4 font-semibold text-emerald-600">Delivered</th>
                       <th className="p-4 font-semibold">Total Sales</th>
+                      <th className="p-4 font-semibold">Total Quantity</th>
+                      <th className="p-4 font-semibold">Products Sold</th>
                       <th className="p-4 font-semibold">Field Visits</th>
                     </tr>
                   </thead>
@@ -253,6 +255,8 @@ export default function AdminDashboard() {
                           <td className="p-4 text-amber-600 font-medium">{report.pendingOrders}</td>
                           <td className="p-4 text-emerald-600 font-medium">{report.deliveredOrders}</td>
                           <td className="p-4 text-slate-800 font-bold">₹{report.totalSales}</td>
+                          <td className="p-4 text-blue-600 font-medium">{report.totalQuantitySold}</td>
+                          <td className="p-4 text-slate-600 text-xs">{report.productsSold}</td>
                           <td className="p-4 text-slate-600">{report.totalFieldVisits}</td>
                         </tr>
                       ))
@@ -293,6 +297,7 @@ export default function AdminDashboard() {
                       <th className="p-4 font-semibold text-emerald-600">Delivered</th>
                       <th className="p-4 font-semibold">Total Sales</th>
                       <th className="p-4 font-semibold">Total Quantity</th>
+                      <th className="p-4 font-semibold">Products Sold</th>
                       <th className="p-4 font-semibold">Field Visits</th>
                     </tr>
                   </thead>
@@ -310,6 +315,7 @@ export default function AdminDashboard() {
                           <td className="p-4 text-emerald-600 font-medium">{report.deliveredOrders}</td>
                           <td className="p-4 text-slate-800 font-bold">₹{report.totalSales}</td>
                           <td className="p-4 text-blue-600 font-medium">{report.totalQuantitySold}</td>
+                          <td className="p-4 text-slate-600 text-xs">{report.productsSold}</td>
                           <td className="p-4 text-slate-600">{report.totalFieldVisits}</td>
                         </tr>
                       ))
