@@ -41,7 +41,7 @@ export default function Welcome() {
           onClick={handleLogoClick}
           className="cursor-pointer active:scale-95 transition-transform"
         >
-          <img src="/logo.jpg" alt="Gmark-Tracking-Field Logo" className="h-28 w-28 mx-auto mb-6 rounded-2xl shadow-lg object-contain bg-white" />
+          <img src="/gmark-logo.png" alt="Gmark-Tracking-Field Logo" className="h-28 w-28 mx-auto mb-6 rounded-2xl shadow-lg object-contain bg-white" />
         </div>
 
         {/* Header Section */}

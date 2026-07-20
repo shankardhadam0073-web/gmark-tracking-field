@@ -9,7 +9,7 @@ export default function RoleSelection() {
       
       {/* Header & Hidden Admin Trigger */}
       <div className="mb-10 text-center">
-        <img src="/logo.jpg" alt="Gmark-Tracking-Field Logo" className="h-28 w-28 mx-auto mb-6 rounded-2xl shadow-lg object-contain bg-white" />
+        <img src="/gmark-logo.png" alt="Gmark-Tracking-Field Logo" className="h-28 w-28 mx-auto mb-6 rounded-2xl shadow-lg object-contain bg-white" />
         <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">
           Select Your Role
         </h1>

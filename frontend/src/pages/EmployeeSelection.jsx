@@ -122,7 +122,7 @@ export default function EmployeeSelection() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 md:p-8">
       <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-lg w-full text-center border border-slate-100">
         
-        <img src="/logo.jpg" alt="Gmark-Tracking-Field Logo" className="h-24 w-24 mx-auto mb-6 rounded-2xl shadow-md object-contain bg-white" />
+        <img src="/gmark-logo.png" alt="Gmark-Tracking-Field Logo" className="h-24 w-24 mx-auto mb-6 rounded-2xl shadow-md object-contain bg-white" />
 
         <h1 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">
           Welcome
