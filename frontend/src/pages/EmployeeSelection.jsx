@@ -93,6 +93,7 @@ export default function EmployeeSelection() {
       } else {
         try {
           const newEmp = await createEmployee({
+            id: Math.floor(Math.random() * 10000) + 10, // Generate random ID to avoid 0
             name: `${selectedEmployee} Employee`,
             employeeCode: `E${Math.floor(Math.random() * 10000)}`,
             mobileNumber: '0000000000',
