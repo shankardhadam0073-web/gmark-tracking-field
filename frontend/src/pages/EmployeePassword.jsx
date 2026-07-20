@@ -81,7 +81,6 @@ export default function EmployeePassword() {
                   autoFocus
                   required 
                   type={showPassword ? "text" : "password"} 
-                  inputMode="numeric"
                   placeholder="Enter your password"
                   value={password} 
                   onChange={e => setPassword(e.target.value)} 
