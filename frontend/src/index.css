@@ -19,6 +19,12 @@ body {
   z-index: 0;
 }
 
+/* Ensure page wrappers don't hide the global background */
+.min-h-screen.bg-slate-50, 
+.min-h-screen.bg-white {
+  background-color: transparent !important;
+}
+
 /* Layer 1: Base Gradient + Geometric Tech Dots + Radial Accents */
 body::before {
   content: "";
