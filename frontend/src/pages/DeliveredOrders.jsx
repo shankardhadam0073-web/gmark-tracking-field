@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getEmployeeDeliveredOrders } from '../services/api';
+import { getEmployeeDeliveredOrders, getProducts } from '../services/api';
 
 export default function DeliveredOrders() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [productsMaster, setProductsMaster] = useState([]);
 
   useEffect(() => {
     const employeeId = localStorage.getItem('employeeId');
@@ -17,8 +18,12 @@ export default function DeliveredOrders() {
 
     const fetchOrders = async () => {
       try {
-        const data = await getEmployeeDeliveredOrders(employeeId);
+        const [data, products] = await Promise.all([
+          getEmployeeDeliveredOrders(employeeId),
+          getProducts().catch(() => [])
+        ]);
         setOrders(data);
+        setProductsMaster(products);
       } catch (err) {
         console.error(err);
         setError('Failed to fetch delivered orders.');
@@ -90,16 +95,34 @@ export default function DeliveredOrders() {
                       <td className="p-4 text-slate-600">
                         {order.products && order.products.length > 0 ? (
                           <ul className="list-disc list-inside text-sm">
-                            {order.products.map(p => (
-                              <li key={p.id}>{p.quantity}x {p.productName} (₹{p.unitPrice})</li>
-                            ))}
+                            {order.products.map(p => {
+                              let price = p.unitPrice;
+                              if (!price || price === 0) {
+                                const mp = productsMaster.find(m => m.productName === p.productName);
+                                if (mp) {
+                                  price = order.customerCategory?.toLowerCase() === 'dairy farmer' ? mp.dairyFarmerPrice : mp.dealerPrice;
+                                }
+                              }
+                              return (
+                                <li key={p.id}>{p.quantity}x {p.productName} (₹{price})</li>
+                              );
+                            })}
                           </ul>
                         ) : (
                           '-'
                         )}
                       </td>
                       <td className="p-4 text-slate-600 font-medium text-emerald-600">
-                        ₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => sum + (p.rowTotal || (p.quantity * p.unitPrice)), 0) || 0)}
+                        ₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => {
+                          let price = p.unitPrice;
+                          if (!price || price === 0) {
+                            const mp = productsMaster.find(m => m.productName === p.productName);
+                            if (mp) {
+                              price = order.customerCategory?.toLowerCase() === 'dairy farmer' ? mp.dairyFarmerPrice : mp.dealerPrice;
+                            }
+                          }
+                          return sum + (p.quantity * price);
+                        }, 0) || 0)}
                       </td>
                     </tr>
                   ))}
