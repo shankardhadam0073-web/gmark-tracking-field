@@ -20,6 +20,18 @@ if (!string.IsNullOrEmpty(databaseUrl))
     };
     connectionString = builderDb.ToString();
 }
+else if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PGHOST")))
+{
+    var builderDb = new Npgsql.NpgsqlConnectionStringBuilder
+    {
+        Host = Environment.GetEnvironmentVariable("PGHOST"),
+        Port = int.TryParse(Environment.GetEnvironmentVariable("PGPORT"), out var port) ? port : 5432,
+        Username = Environment.GetEnvironmentVariable("PGUSER"),
+        Password = Environment.GetEnvironmentVariable("PGPASSWORD"),
+        Database = Environment.GetEnvironmentVariable("PGDATABASE")
+    };
+    connectionString = builderDb.ToString();
+}
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
