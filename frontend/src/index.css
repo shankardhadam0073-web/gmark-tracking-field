@@ -37,10 +37,10 @@ body::before {
   pointer-events: none;
   background: 
     /* Soft green radial gradients */
-    radial-gradient(circle at 15% 15%, rgba(11, 77, 42, 0.02) 0%, transparent 40%),
-    radial-gradient(circle at 85% 85%, rgba(11, 77, 42, 0.02) 0%, transparent 40%),
+    radial-gradient(circle at 15% 15%, rgba(11, 77, 42, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(11, 77, 42, 0.04) 0%, transparent 40%),
     /* Premium tech dot pattern */
-    url("data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1.5' fill='%230B4D2A' fill-opacity='0.03'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1.5' fill='%230B4D2A' fill-opacity='0.06'/%3E%3C/svg%3E"),
     /* Smooth white to light-gray linear gradient */
     linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%);
 }
@@ -57,6 +57,6 @@ body::after {
   z-index: -1;
   pointer-events: none;
   background: url('/navbharat-bg-logo.png') center center / min(85vw, 800px) no-repeat;
-  opacity: 0.04;
-  filter: blur(2px);
+  opacity: 0.10;
+  filter: blur(1px);
 }
