@@ -37,7 +37,19 @@ namespace NavbharatAgroAPI.Controllers
                     return Unauthorized(new { message = "Invalid Password" });
                 }
 
-                if (string.IsNullOrEmpty(employee.PasswordHash) || !BCrypt.Net.BCrypt.Verify(request.Password, employee.PasswordHash))
+                if (string.IsNullOrEmpty(employee.PasswordHash))
+                {
+                    if (request.Password == "1234")
+                    {
+                        employee.PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234");
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        return Unauthorized(new { message = "Invalid Password" });
+                    }
+                }
+                else if (!BCrypt.Net.BCrypt.Verify(request.Password, employee.PasswordHash))
                 {
                     return Unauthorized(new { message = "Invalid Password" });
                 }
