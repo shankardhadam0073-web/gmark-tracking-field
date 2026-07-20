@@ -54,7 +54,7 @@ namespace NavbharatAgroAPI.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while getting all employees.");
-                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred.", details = ex.Message, inner = ex.InnerException?.Message });
             }
         }
 
