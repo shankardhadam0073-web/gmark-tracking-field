@@ -37,7 +37,7 @@ namespace NavbharatAgroAPI.Controllers
                     return Unauthorized(new { message = "Invalid Password" });
                 }
 
-                if (string.IsNullOrEmpty(employee.PasswordHash))
+                if (string.IsNullOrEmpty(employee.PasswordHash) || employee.PasswordHash == "1234")
                 {
                     if (request.Password == "1234")
                     {
@@ -49,9 +49,28 @@ namespace NavbharatAgroAPI.Controllers
                         return Unauthorized(new { message = "Invalid Password" });
                     }
                 }
-                else if (!BCrypt.Net.BCrypt.Verify(request.Password, employee.PasswordHash))
+                else 
                 {
-                    return Unauthorized(new { message = "Invalid Password" });
+                    bool isValid = false;
+                    try 
+                    {
+                        isValid = BCrypt.Net.BCrypt.Verify(request.Password, employee.PasswordHash);
+                    }
+                    catch
+                    {
+                        // Fallback if hash is invalid (e.g. plaintext)
+                        if (request.Password == employee.PasswordHash)
+                        {
+                            employee.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+                            await _context.SaveChangesAsync();
+                            isValid = true;
+                        }
+                    }
+
+                    if (!isValid)
+                    {
+                        return Unauthorized(new { message = "Invalid Password" });
+                    }
                 }
 
                 var token = Guid.NewGuid().ToString();
