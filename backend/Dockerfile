@@ -21,7 +21,7 @@ RUN dotnet build "NavbharatAgroAPI.csproj" -c Release -o /app/build
 
 # Publish the project
 FROM build AS publish
-RUN dotnet publish "NavbharatAgroAPI.csproj" -c Release -o /app/publish --no-build /p:UseAppHost=false
+RUN dotnet publish "NavbharatAgroAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Final stage/image
 FROM base AS final
