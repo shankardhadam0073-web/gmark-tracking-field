@@ -103,6 +103,31 @@ namespace NavbharatAgroAPI.Controllers
         }
 
         /// <summary>
+        /// Retrieves a list of cancelled order bookings, including their products.
+        /// </summary>
+        /// <returns>A list of OrderBookingResponseDto.</returns>
+        [HttpGet("cancelled")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<OrderBookingResponseDto>))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<IEnumerable<OrderBookingResponseDto>>> GetCancelledOrderBookings()
+        {
+            try
+            {
+                var bookings = await _context.OrderBookings
+                    .Include(o => o.OrderProducts)
+                    .Where(o => o.OrderStatus == "Cancelled")
+                    .ToListAsync();
+
+                return Ok(bookings.Select(o => MapToResponseDto(o, "Retrieved Successfully")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting cancelled order bookings.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+            }
+        }
+
+        /// <summary>
         /// Retrieves a list of all order bookings for a specific employee.
         /// </summary>
         /// <param name="employeeId">The unique identifier of the employee.</param>
@@ -176,6 +201,32 @@ namespace NavbharatAgroAPI.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while getting delivered order bookings for employee {EmployeeId}.", employeeId);
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a list of cancelled order bookings for a specific employee.
+        /// </summary>
+        /// <param name="employeeId">The unique identifier of the employee.</param>
+        /// <returns>A list of OrderBookingResponseDto.</returns>
+        [HttpGet("employee/{employeeId}/cancelled")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<OrderBookingResponseDto>))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<IEnumerable<OrderBookingResponseDto>>> GetCancelledOrderBookingsByEmployee(int employeeId)
+        {
+            try
+            {
+                var bookings = await _context.OrderBookings
+                    .Include(o => o.OrderProducts)
+                    .Where(o => o.EmployeeId == employeeId && o.OrderStatus == "Cancelled")
+                    .ToListAsync();
+
+                return Ok(bookings.Select(o => MapToResponseDto(o, "Retrieved Successfully")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting cancelled order bookings for employee {EmployeeId}.", employeeId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
             }
         }
@@ -511,6 +562,41 @@ namespace NavbharatAgroAPI.Controllers
         }
 
         /// <summary>
+        /// Cancels an order booking with a reason.
+        /// </summary>
+        /// <param name="id">The unique identifier of the order booking.</param>
+        /// <param name="cancelDto">The cancellation reason.</param>
+        /// <returns>A success message.</returns>
+        [HttpPut("{id}/cancel")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CancelOrderBooking(int id, [FromBody] CancelOrderDto cancelDto)
+        {
+            try
+            {
+                var orderBooking = await _context.OrderBookings.FindAsync(id);
+                if (orderBooking == null)
+                {
+                    _logger.LogWarning("CancelOrderBooking: OrderBooking with Id {Id} not found.", id);
+                    return NotFound(new { message = $"OrderBooking with Id {id} not found." });
+                }
+
+                orderBooking.OrderStatus = "Cancelled";
+                orderBooking.CancellationReason = cancelDto.Reason;
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("OrderBooking with Id {Id} cancelled successfully.", id);
+                return Ok(new { message = "Order Cancelled Successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while cancelling OrderBooking with Id {Id}.", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+            }
+        }
+
+        /// <summary>
         /// Helper to consistently map an OrderBooking entity to OrderBookingResponseDto.
         /// </summary>
         private OrderBookingResponseDto MapToResponseDto(OrderBooking orderBooking, string message)
@@ -526,6 +612,7 @@ namespace NavbharatAgroAPI.Controllers
                 MobileNumber = orderBooking.MobileNumber,
                 CustomerCategory = orderBooking.CustomerCategory,
                 OrderStatus = orderBooking.OrderStatus ?? "Pending",
+                CancellationReason = orderBooking.CancellationReason,
                 GrandTotal = orderBooking.GrandTotal,
                 BookingDate = orderBooking.BookingDate,
                 BookingTime = orderBooking.BookingTime,

@@ -45,6 +45,9 @@ namespace NavbharatAgroAPI.Models
 
         public TimeOnly BookingTime { get; set; }
 
+        [StringLength(500)]
+        public string? CancellationReason { get; set; }
+
         public ICollection<OrderProduct> OrderProducts { get; set; } = new List<OrderProduct>();
     }
 }

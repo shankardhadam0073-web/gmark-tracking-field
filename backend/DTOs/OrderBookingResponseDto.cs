@@ -18,6 +18,7 @@ namespace NavbharatAgroAPI.DTOs
         public decimal GrandTotal { get; set; }
         public DateOnly BookingDate { get; set; }
         public TimeOnly BookingTime { get; set; }
+        public string? CancellationReason { get; set; }
         
         public List<OrderProductResponseDto> Products { get; set; } = new List<OrderProductResponseDto>();
         
