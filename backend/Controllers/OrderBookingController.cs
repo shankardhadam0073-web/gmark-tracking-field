@@ -628,6 +628,37 @@ namespace NavbharatAgroAPI.Controllers
             };
         }
 
+        /// <summary>
+        /// Updates the grand total of an order booking directly.
+        /// </summary>
+        [HttpPut("{id}/total")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateOrderTotal(int id, [FromBody] UpdateTotalDto dto)
+        {
+            try
+            {
+                var orderBooking = await _context.OrderBookings.FindAsync(id);
+                if (orderBooking == null)
+                {
+                    _logger.LogWarning("UpdateOrderTotal: OrderBooking with Id {Id} not found.", id);
+                    return NotFound(new { message = $"OrderBooking with Id {id} not found." });
+                }
+
+                orderBooking.GrandTotal = dto.Total;
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("OrderBooking with Id {Id} total updated to {Total} successfully.", id, dto.Total);
+                return Ok(new { message = "Total updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating total for OrderBooking with Id {Id}.", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+            }
+        }
+
         [HttpGet("fix-zeros")]
         public async Task<IActionResult> FixZeros()
         {
