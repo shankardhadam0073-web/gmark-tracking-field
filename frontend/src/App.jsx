@@ -14,13 +14,7 @@ import FieldVisits from './pages/FieldVisits';
 function App() {
   return (
     <Router>
-      <div className="fixed top-4 left-4 z-[9999] bg-white p-2 rounded-xl shadow-md">
-        <img 
-          src="https://gram-unnati.com/Logo.png" 
-          alt="GramUnnati Logo" 
-          className="h-12 md:h-16 w-auto"
-        />
-      </div>
+
       <Routes>
         <Route path="/" element={<Navigate to="/welcome" replace />} />
         <Route path="/welcome" element={<Welcome />} />
