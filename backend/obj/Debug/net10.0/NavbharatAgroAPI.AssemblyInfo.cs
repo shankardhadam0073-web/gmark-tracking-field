@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NavbharatAgroAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ca37a50f2865739d0cda13fe62a431ce5f954168")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+50b5d8a64ae63bc4f47b3f1ba7913d8d5a81a0ae")]
 [assembly: System.Reflection.AssemblyProductAttribute("NavbharatAgroAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NavbharatAgroAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
