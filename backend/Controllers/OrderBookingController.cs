@@ -627,5 +627,39 @@ namespace NavbharatAgroAPI.Controllers
                 Message = message
             };
         }
+
+        [HttpGet("fix-zeros")]
+        public async Task<IActionResult> FixZeros()
+        {
+            var orders = await _context.OrderBookings.Include(o => o.OrderProducts).Where(o => o.GrandTotal == 0).ToListAsync();
+            var products = await _context.Products.ToListAsync();
+            int updated = 0;
+            foreach (var order in orders)
+            {
+                decimal newTotal = 0;
+                foreach (var p in order.OrderProducts)
+                {
+                    if (p.UnitPrice == 0)
+                    {
+                        var prod = products.FirstOrDefault(pr => pr.ProductName.Trim().Equals(p.ProductName.Trim(), StringComparison.OrdinalIgnoreCase));
+                        if (prod != null)
+                        {
+                            decimal price = string.Equals(order.CustomerCategory, "Dairy Farmer", StringComparison.OrdinalIgnoreCase) ? prod.DairyFarmerPrice : prod.DealerPrice;
+                            p.UnitPrice = price;
+                            p.RowTotal = price * p.Quantity;
+                        }
+                    }
+                    newTotal += p.RowTotal;
+                }
+                if (newTotal > 0)
+                {
+                    order.GrandTotal = newTotal;
+                    _context.Entry(order).State = EntityState.Modified;
+                    updated++;
+                }
+            }
+            await _context.SaveChangesAsync();
+            return Ok(new { message = $"Fixed {updated} orders" });
+        }
     }
 }
