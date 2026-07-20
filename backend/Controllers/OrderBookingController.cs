@@ -271,18 +271,17 @@ namespace NavbharatAgroAPI.Controllers
                             return BadRequest(new { message = $"Product '{p.ProductName}' not found in Product Master." });
                         }
 
-                        decimal unitPrice = 0;
-                        if (string.Equals(requestDto.CustomerCategory, "Dealer", StringComparison.OrdinalIgnoreCase))
+                        decimal unitPrice = p.UnitPrice ?? 0;
+                        if (unitPrice == 0)
                         {
-                            unitPrice = dbProduct.DealerPrice;
-                        }
-                        else if (string.Equals(requestDto.CustomerCategory, "Dairy Farmer", StringComparison.OrdinalIgnoreCase))
-                        {
-                            unitPrice = dbProduct.DairyFarmerPrice;
-                        }
-                        else
-                        {
-                            return BadRequest(new { message = $"Invalid Customer Category: '{requestDto.CustomerCategory}'. Must be 'Dealer' or 'Dairy Farmer'." });
+                            if (string.Equals(requestDto.CustomerCategory, "Dealer", StringComparison.OrdinalIgnoreCase))
+                            {
+                                unitPrice = dbProduct.DealerPrice;
+                            }
+                            else if (string.Equals(requestDto.CustomerCategory, "Dairy Farmer", StringComparison.OrdinalIgnoreCase))
+                            {
+                                unitPrice = dbProduct.DairyFarmerPrice;
+                            }
                         }
 
                         var rowTotal = unitPrice * p.Quantity;
@@ -394,18 +393,17 @@ namespace NavbharatAgroAPI.Controllers
                             return BadRequest(new { message = $"Product '{dtoProduct.ProductName}' not found in Product Master." });
                         }
 
-                        decimal unitPrice = 0;
-                        if (string.Equals(requestDto.CustomerCategory, "Dealer", StringComparison.OrdinalIgnoreCase))
+                        decimal unitPrice = dtoProduct.UnitPrice ?? 0;
+                        if (unitPrice == 0)
                         {
-                            unitPrice = dbProduct.DealerPrice;
-                        }
-                        else if (string.Equals(requestDto.CustomerCategory, "Dairy Farmer", StringComparison.OrdinalIgnoreCase))
-                        {
-                            unitPrice = dbProduct.DairyFarmerPrice;
-                        }
-                        else
-                        {
-                            return BadRequest(new { message = $"Invalid Customer Category: '{requestDto.CustomerCategory}'. Must be 'Dealer' or 'Dairy Farmer'." });
+                            if (string.Equals(requestDto.CustomerCategory, "Dealer", StringComparison.OrdinalIgnoreCase))
+                            {
+                                unitPrice = dbProduct.DealerPrice;
+                            }
+                            else if (string.Equals(requestDto.CustomerCategory, "Dairy Farmer", StringComparison.OrdinalIgnoreCase))
+                            {
+                                unitPrice = dbProduct.DairyFarmerPrice;
+                            }
                         }
 
                         var rowTotal = unitPrice * dtoProduct.Quantity;

@@ -149,9 +149,12 @@ export default function OrderBookings() {
         customerCategory: formData.customerCategory,
         products: formData.products.map(p => {
           const qty = parseInt(p.quantity) || 0;
+          const defaultUnitPrice = getUnitPrice(p.productName, formData.customerCategory);
+          const activeUnitPrice = p.unitPrice !== undefined ? p.unitPrice : defaultUnitPrice;
           return {
             productName: p.productName,
-            quantity: qty
+            quantity: qty,
+            unitPrice: activeUnitPrice
           };
         }),
         bookingDate: now.toLocaleDateString('en-CA'), // YYYY-MM-DD format
