@@ -19,7 +19,7 @@ export default function EmployeeSelection() {
 
   const employeeOptions = [
     { value: 'Kunal', label: 'Kunal' },
-    { value: 'Pruthviraj', label: 'Pruthviraj' },
+    { value: 'Prutivraj', label: 'Prutivraj' },
     { value: 'Rohit', label: 'Rohit' }
   ];
 
