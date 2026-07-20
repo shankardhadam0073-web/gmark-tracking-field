@@ -35,9 +35,6 @@ export default function EmployeePassword() {
       console.log('API Base URL:', import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5159/api`);
       console.log('Request Payload:', payload);
       
-      // Temporarily show debug info on screen so it can be seen in screenshots
-      setAuthError(`DEBUG: ID=${employeeId}, Route=${employeeRoute}, PassLen=${cleanPassword.length}, Pwd="${cleanPassword}"`);
-      
       const response = await loginEmployee(payload);
       
       // Save info on success
@@ -48,8 +45,7 @@ export default function EmployeePassword() {
       
       navigate('/employee-dashboard');
     } catch (err) {
-      const debugStr = ` | DEBUG: ID=${employeeId}, Pwd="${cleanPassword}", URL=${import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5159/api`}`;
-      setAuthError((err.response?.data?.message || `Network Error: ${err.message}`) + debugStr);
+      setAuthError(err.response?.data?.message || `Network Error: ${err.message}`);
       setIsSubmitting(false);
     }
   };
