@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { getEmployeeOrderBookings, getEmployeePendingOrders, getEmployeeDeliveredOrders } from '../services/api';
+import { getEmployeeOrderBookings, getEmployeePendingOrders, getEmployeeDeliveredOrders, getEmployeeCancelledOrders } from '../services/api';
 
 export default function EmployeeDashboard() {
   const navigate = useNavigate();
   const [employeeName, setEmployeeName] = useState('');
-  const [stats, setStats] = useState({ total: 0, pending: 0, delivered: 0 });
+  const [stats, setStats] = useState({ total: 0, pending: 0, delivered: 0, cancelled: 0 });
 
   useEffect(() => {
     const name = localStorage.getItem('employeeName');
@@ -17,15 +17,17 @@ export default function EmployeeDashboard() {
       
       const fetchStats = async () => {
         try {
-          const [total, pending, delivered] = await Promise.all([
+          const [total, pending, delivered, cancelled] = await Promise.all([
             getEmployeeOrderBookings(employeeId),
             getEmployeePendingOrders(employeeId),
-            getEmployeeDeliveredOrders(employeeId)
+            getEmployeeDeliveredOrders(employeeId),
+            getEmployeeCancelledOrders(employeeId)
           ]);
           setStats({
             total: total.length,
             pending: pending.length,
-            delivered: delivered.length
+            delivered: delivered.length,
+            cancelled: cancelled.length
           });
         } catch (err) {
           console.error("Failed to fetch stats", err);
@@ -77,20 +79,25 @@ export default function EmployeeDashboard() {
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 -mt-10 mb-12 relative z-10">
         
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-blue-600 rounded-2xl shadow-lg p-6 text-white flex flex-col justify-center items-center">
             <h3 className="text-lg font-medium text-blue-100 mb-1">Total Orders</h3>
             <p className="text-4xl font-bold">{stats.total}</p>
           </div>
           
           <button onClick={() => navigate('/pending-orders')} className="bg-amber-500 hover:bg-amber-600 transition-colors rounded-2xl shadow-lg p-6 text-white flex flex-col justify-center items-center group active:scale-95">
-            <h3 className="text-lg font-medium text-amber-100 mb-1 group-hover:text-white transition-colors">Pending Orders</h3>
+            <h3 className="text-lg font-medium text-amber-100 mb-1 group-hover:text-white transition-colors">Pending</h3>
             <p className="text-4xl font-bold">{stats.pending}</p>
           </button>
 
           <button onClick={() => navigate('/delivered-orders')} className="bg-emerald-600 hover:bg-emerald-700 transition-colors rounded-2xl shadow-lg p-6 text-white flex flex-col justify-center items-center group active:scale-95">
-            <h3 className="text-lg font-medium text-emerald-100 mb-1 group-hover:text-white transition-colors">Delivered Orders</h3>
+            <h3 className="text-lg font-medium text-emerald-100 mb-1 group-hover:text-white transition-colors">Delivered</h3>
             <p className="text-4xl font-bold">{stats.delivered}</p>
+          </button>
+
+          <button onClick={() => navigate('/cancelled-orders')} className="bg-red-500 hover:bg-red-600 transition-colors rounded-2xl shadow-lg p-6 text-white flex flex-col justify-center items-center group active:scale-95">
+            <h3 className="text-lg font-medium text-red-100 mb-1 group-hover:text-white transition-colors">Cancelled</h3>
+            <p className="text-4xl font-bold">{stats.cancelled}</p>
           </button>
         </div>
 

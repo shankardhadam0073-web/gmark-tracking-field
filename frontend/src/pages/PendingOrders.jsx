@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getEmployeePendingOrders, deliverOrderBooking } from '../services/api';
+import { getEmployeePendingOrders, deliverOrderBooking, cancelOrderBooking } from '../services/api';
 
 export default function PendingOrders() {
   const navigate = useNavigate();
@@ -20,6 +20,25 @@ export default function PendingOrders() {
     } catch (err) {
       console.error(err);
       setError('Failed to mark order as delivered.');
+    }
+  };
+
+  const handleCancel = async (orderId) => {
+    const reason = window.prompt(`Please enter a cancellation reason for order ${orderId}:`);
+    if (reason === null) return; // User clicked cancel on prompt
+    if (reason.trim() === '') {
+      alert('Cancellation reason is required.');
+      return;
+    }
+    setError('');
+    setSuccess('');
+    try {
+      await cancelOrderBooking(orderId, reason);
+      setSuccess(`Order ${orderId} cancelled successfully!`);
+      setOrders(prev => prev.filter(o => o.id !== orderId));
+    } catch (err) {
+      console.error(err);
+      setError('Failed to cancel order.');
     }
   };
 
@@ -119,8 +138,14 @@ export default function PendingOrders() {
                           '-'
                         )}
                       </td>
-                      <td className="p-4 text-slate-600 font-medium text-amber-600">₹{order.grandTotal}</td>
-                      <td className="p-4 text-right">
+                      <td className="p-4 text-slate-600 font-medium text-amber-600">₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => sum + (p.rowTotal || (p.quantity * p.unitPrice)), 0) || 0)}</td>
+                      <td className="p-4 text-right flex justify-end gap-2">
+                        <button 
+                          onClick={() => handleCancel(order.id)}
+                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
+                        >
+                          Cancel Order
+                        </button>
                         <button 
                           onClick={() => handleDeliver(order.id)}
                           className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors shadow-sm"

@@ -264,7 +264,7 @@ export default function EmployeeDetail() {
                         <td className="p-4 text-slate-600">{order.customerName}</td>
                         <td className="p-4 text-slate-600">{order.bookingDate}</td>
                         <td className="p-4 text-slate-600 text-xs">{order.products?.map(p => `${p.productName} (${p.quantity})`).join(', ') || '-'}</td>
-                        <td className="p-4 text-amber-600 font-medium text-right">₹{order.grandTotal}</td>
+                        <td className="p-4 text-amber-600 font-medium text-right">₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => sum + (p.rowTotal || (p.quantity * p.unitPrice)), 0) || 0)}</td>
                       </tr>
                     ))
                   )}
@@ -304,7 +304,7 @@ export default function EmployeeDetail() {
                         <td className="p-4 text-slate-600">{order.customerName}</td>
                         <td className="p-4 text-slate-600">{order.bookingDate}</td>
                         <td className="p-4 text-slate-600 text-xs">{order.products?.map(p => `${p.productName} (${p.quantity})`).join(', ') || '-'}</td>
-                        <td className="p-4 text-emerald-600 font-medium text-right">₹{order.grandTotal}</td>
+                        <td className="p-4 text-emerald-600 font-medium text-right">₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => sum + (p.rowTotal || (p.quantity * p.unitPrice)), 0) || 0)}</td>
                       </tr>
                     ))
                   )}

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getEmployeeDeliveredOrders } from '../services/api';
+import { getEmployeeCancelledOrders } from '../services/api';
 
-export default function DeliveredOrders() {
+export default function CancelledOrders() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,11 +17,11 @@ export default function DeliveredOrders() {
 
     const fetchOrders = async () => {
       try {
-        const data = await getEmployeeDeliveredOrders(employeeId);
+        const data = await getEmployeeCancelledOrders(employeeId);
         setOrders(data);
       } catch (err) {
         console.error(err);
-        setError('Failed to fetch delivered orders.');
+        setError('Failed to fetch cancelled orders.');
       } finally {
         setLoading(false);
       }
@@ -32,11 +32,11 @@ export default function DeliveredOrders() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="bg-emerald-600 text-white pt-12 pb-20 px-6 rounded-b-3xl shadow-md">
+      <header className="bg-red-500 text-white pt-12 pb-20 px-6 rounded-b-3xl shadow-md">
         <div className="max-w-6xl mx-auto flex justify-between items-end">
           <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">Delivered Orders</h1>
-            <p className="text-emerald-100 font-medium mt-2">View your delivered order bookings</p>
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">Cancelled Orders</h1>
+            <p className="text-red-100 font-medium mt-2">View your cancelled order bookings</p>
           </div>
           <button 
             onClick={() => navigate('/employee-dashboard')}
@@ -59,7 +59,7 @@ export default function DeliveredOrders() {
           )}
 
           {loading ? (
-            <p className="text-slate-500">Loading delivered orders...</p>
+            <p className="text-slate-500">Loading cancelled orders...</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -70,14 +70,15 @@ export default function DeliveredOrders() {
                     <th className="p-4 font-semibold">Village</th>
                     <th className="p-4 font-semibold">Date</th>
                     <th className="p-4 font-semibold">Products</th>
-                    <th className="p-4 rounded-tr-lg font-semibold">Total</th>
+                    <th className="p-4 font-semibold">Total</th>
+                    <th className="p-4 rounded-tr-lg font-semibold text-right">Reason</th>
                   </tr>
                 </thead>
                 <tbody>
                   {orders.length === 0 && (
                     <tr>
-                      <td colSpan="6" className="p-4 text-center text-slate-500 border-b border-slate-100">
-                        No delivered orders found.
+                      <td colSpan="7" className="p-4 text-center text-slate-500 border-b border-slate-100">
+                        No cancelled orders found.
                       </td>
                     </tr>
                   )}
@@ -91,15 +92,16 @@ export default function DeliveredOrders() {
                         {order.products && order.products.length > 0 ? (
                           <ul className="list-disc list-inside text-sm">
                             {order.products.map(p => (
-                              <li key={p.id}>{p.quantity}x {p.productName} (₹{p.unitPrice})</li>
+                              <li key={p.id}>{p.quantity}x {p.productName}</li>
                             ))}
                           </ul>
                         ) : (
                           '-'
                         )}
                       </td>
-                      <td className="p-4 text-slate-600 font-medium text-emerald-600">
-                        ₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => sum + (p.rowTotal || (p.quantity * p.unitPrice)), 0) || 0)}
+                      <td className="p-4 text-slate-600 font-medium">₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => sum + (p.rowTotal || (p.quantity * p.unitPrice)), 0) || 0)}</td>
+                      <td className="p-4 text-right text-red-600 text-sm max-w-xs break-words">
+                        {order.cancellationReason || '-'}
                       </td>
                     </tr>
                   ))}

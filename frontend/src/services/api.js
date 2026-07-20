@@ -41,10 +41,13 @@ export const createOrderBooking = (data) => api.post('/orderbookings', data).the
 export const updateOrderBooking = (id, data) => api.put(`/orderbookings/${id}`, data).then(res => res.data);
 export const deleteOrderBooking = (id) => api.delete(`/orderbookings/${id}`).then(res => res.data);
 export const deliverOrderBooking = (id) => api.put(`/orderbookings/${id}/deliver`).then(res => res.data);
+export const cancelOrderBooking = (id, reason) => api.put(`/orderbookings/${id}/cancel`, { reason }).then(res => res.data);
+export const getCancelledOrders = () => api.get('/orderbookings/cancelled').then(res => res.data);
 
 export const getEmployeeOrderBookings = (employeeId) => api.get(`/orderbookings/employee/${employeeId}`).then(res => res.data);
 export const getEmployeePendingOrders = (employeeId) => api.get(`/orderbookings/employee/${employeeId}/pending`).then(res => res.data);
 export const getEmployeeDeliveredOrders = (employeeId) => api.get(`/orderbookings/employee/${employeeId}/delivered`).then(res => res.data);
+export const getEmployeeCancelledOrders = (employeeId) => api.get(`/orderbookings/employee/${employeeId}/cancelled`).then(res => res.data);
 
 // --- FieldVisits API ---
 export const getFieldVisits = () => api.get('/fieldvisits').then(res => res.data);

@@ -10,6 +10,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import EmployeeDetail from './pages/EmployeeDetail';
 import OrderBookings from './pages/OrderBookings';
 import FieldVisits from './pages/FieldVisits';
+import CancelledOrders from './pages/CancelledOrders';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/admin-dashboard/employee/:id" element={<EmployeeDetail />} />
         <Route path="/order-bookings" element={<OrderBookings />} />
         <Route path="/field-visits" element={<FieldVisits />} />
+        <Route path="/cancelled-orders" element={<CancelledOrders />} />
       </Routes>
     </Router>
   );

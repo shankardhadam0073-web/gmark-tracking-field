@@ -5,7 +5,8 @@ import {
   getDailyReport,
   getMonthlyReport,
   createEmployee,
-  deleteEmployee
+  deleteEmployee,
+  getCancelledOrders
 } from '../services/api';
 
 export default function AdminDashboard() {
@@ -23,6 +24,7 @@ export default function AdminDashboard() {
   // Reports Data states
   const [dailyReports, setDailyReports] = useState([]);
   const [monthlyReports, setMonthlyReports] = useState([]);
+  const [cancelledOrders, setCancelledOrders] = useState([]);
   const [reportLoading, setReportLoading] = useState(false);
   const [reportError, setReportError] = useState('');
 
@@ -108,6 +110,21 @@ export default function AdminDashboard() {
         }
       };
       fetchMonthly();
+    } else if (activeTab === 'cancelled') {
+      const fetchCancelled = async () => {
+        setReportLoading(true);
+        setReportError('');
+        try {
+          const data = await getCancelledOrders();
+          setCancelledOrders(data);
+        } catch (err) {
+          console.error(err);
+          setReportError('Failed to fetch cancelled orders.');
+        } finally {
+          setReportLoading(false);
+        }
+      };
+      fetchCancelled();
     }
   }, [activeTab]);
 
@@ -151,6 +168,12 @@ export default function AdminDashboard() {
               className={`flex-1 py-4 font-semibold text-center transition-colors ${activeTab === 'monthly' ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'bg-slate-50 text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
             >
               Monthly Report
+            </button>
+            <button 
+              onClick={() => setActiveTab('cancelled')}
+              className={`flex-1 py-4 font-semibold text-center transition-colors ${activeTab === 'cancelled' ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'bg-slate-50 text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
+            >
+              Cancelled Orders
             </button>
         </div>
 
@@ -317,6 +340,60 @@ export default function AdminDashboard() {
                           <td className="p-4 text-blue-600 font-medium">{report.totalQuantitySold}</td>
                           <td className="p-4 text-slate-600 text-xs">{report.productsSold}</td>
                           <td className="p-4 text-slate-600">{report.totalFieldVisits}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Cancelled Orders Tab */}
+        {activeTab === 'cancelled' && (
+          <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+            <div className="bg-slate-50 p-6 border-b border-slate-100 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-slate-800">Cancelled Orders History</h2>
+            </div>
+            
+            {reportError && (
+              <div className="m-6 bg-red-50 text-red-700 p-4 rounded-xl border border-red-200">
+                {reportError}
+              </div>
+            )}
+
+            {reportLoading ? (
+              <p className="p-6 text-slate-500">Loading cancelled orders...</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr className="bg-slate-100 text-slate-600">
+                      <th className="p-4 font-semibold">ID</th>
+                      <th className="p-4 font-semibold">Employee ID</th>
+                      <th className="p-4 font-semibold">Customer</th>
+                      <th className="p-4 font-semibold">Village</th>
+                      <th className="p-4 font-semibold">Date</th>
+                      <th className="p-4 font-semibold">Total</th>
+                      <th className="p-4 font-semibold text-red-600">Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cancelledOrders.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="p-4 text-center text-slate-500 border-b border-slate-100">No cancelled orders found.</td>
+                      </tr>
+                    ) : (
+                      cancelledOrders.map(order => (
+                        <tr key={order.id} className="border-b border-slate-100 hover:bg-slate-50">
+                          <td className="p-4 font-bold text-slate-800">{order.id}</td>
+                          <td className="p-4 text-slate-600">{order.employeeId}</td>
+                          <td className="p-4 text-slate-600">{order.customerName}</td>
+                          <td className="p-4 text-slate-600">{order.village || '-'}</td>
+                          <td className="p-4 text-slate-600">{order.bookingDate}</td>
+                          <td className="p-4 text-slate-800 font-bold">₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => sum + (p.rowTotal || (p.quantity * p.unitPrice)), 0) || 0)}</td>
+                          <td className="p-4 text-red-600 text-xs max-w-xs break-words">{order.cancellationReason || '-'}</td>
                         </tr>
                       ))
                     )}
