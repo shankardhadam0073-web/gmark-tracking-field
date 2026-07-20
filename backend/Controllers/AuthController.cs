@@ -52,16 +52,17 @@ namespace NavbharatAgroAPI.Controllers
                 else 
                 {
                     bool isValid = false;
+                    var trimmedPassword = request.Password?.Trim();
                     try 
                     {
-                        isValid = BCrypt.Net.BCrypt.Verify(request.Password, employee.PasswordHash);
+                        isValid = BCrypt.Net.BCrypt.Verify(trimmedPassword, employee.PasswordHash);
                     }
                     catch
                     {
                         // Fallback if hash is invalid (e.g. plaintext)
-                        if (request.Password == employee.PasswordHash)
+                        if (trimmedPassword == employee.PasswordHash)
                         {
-                            employee.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+                            employee.PasswordHash = BCrypt.Net.BCrypt.HashPassword(trimmedPassword);
                             await _context.SaveChangesAsync();
                             isValid = true;
                         }

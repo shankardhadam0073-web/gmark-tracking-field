@@ -24,7 +24,7 @@ export default function EmployeePassword() {
     setIsSubmitting(true);
     
     try {
-      const response = await loginEmployee({ employeeId, password });
+      const response = await loginEmployee({ employeeId, password: password.trim() });
       
       // Save info on success
       localStorage.setItem('employeeId', response.employeeId.toString());
