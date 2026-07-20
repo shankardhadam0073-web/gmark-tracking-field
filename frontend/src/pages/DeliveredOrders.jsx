@@ -8,9 +8,6 @@ export default function DeliveredOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [productsMaster, setProductsMaster] = useState([]);
-  
-  const [editingTotalId, setEditingTotalId] = useState(null);
-  const [newTotalValue, setNewTotalValue] = useState('');
 
   useEffect(() => {
     const employeeId = localStorage.getItem('employeeId');
@@ -37,19 +34,6 @@ export default function DeliveredOrders() {
 
     fetchOrders();
   }, [navigate]);
-
-  const handleUpdateTotal = async (orderId) => {
-    try {
-      const val = parseFloat(newTotalValue);
-      if (isNaN(val)) return;
-      await updateOrderTotal(orderId, val);
-      setOrders(orders.map(o => o.id === orderId ? { ...o, grandTotal: val } : o));
-      setEditingTotalId(null);
-    } catch (err) {
-      console.error(err);
-      alert('Failed to update total amount.');
-    }
-  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -129,45 +113,18 @@ export default function DeliveredOrders() {
                           '-'
                         )}
                       </td>
-                      <td className="p-4 font-medium">
-                        {editingTotalId === order.id ? (
-                          <div className="flex items-center gap-2">
-                            <input 
-                              type="number" 
-                              className="w-24 px-2 py-1 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              value={newTotalValue}
-                              onChange={(e) => setNewTotalValue(e.target.value)}
-                              placeholder="Amount"
-                            />
-                            <button onClick={() => handleUpdateTotal(order.id)} className="text-emerald-600 font-bold hover:text-emerald-700 text-sm">Save</button>
-                            <button onClick={() => setEditingTotalId(null)} className="text-slate-400 hover:text-slate-600 text-sm">Cancel</button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-between group">
-                            <span className="text-emerald-600">
-                              ₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => {
-                                let price = p.unitPrice;
-                                if (!price || price === 0) {
-                                  const mp = productsMaster.find(m => m.productName?.trim().toLowerCase() === p.productName?.trim().toLowerCase());
-                                  if (mp) {
-                                    price = order.customerCategory?.toLowerCase() === 'dairy farmer' ? mp.dairyFarmerPrice : mp.dealerPrice;
-                                    if (!price || price === 0) price = Math.max(mp.dealerPrice || 0, mp.dairyFarmerPrice || 0);
-                                  }
-                                }
-                                return sum + (p.quantity * price);
-                              }, 0) || 0)}
-                            </span>
-                            <button 
-                              onClick={() => {
-                                setEditingTotalId(order.id);
-                                setNewTotalValue(order.grandTotal > 0 ? order.grandTotal : '');
-                              }}
-                              className={`text-xs px-2 py-1 rounded transition-opacity ${order.grandTotal === 0 ? 'bg-amber-100 text-amber-700 opacity-100' : 'bg-blue-50 text-blue-600 opacity-0 group-hover:opacity-100'}`}
-                            >
-                              {order.grandTotal === 0 ? 'Add Total' : 'Edit'}
-                            </button>
-                          </div>
-                        )}
+                      <td className="p-4 text-slate-600 font-medium text-emerald-600">
+                        ₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => {
+                          let price = p.unitPrice;
+                          if (!price || price === 0) {
+                            const mp = productsMaster.find(m => m.productName?.trim().toLowerCase() === p.productName?.trim().toLowerCase());
+                            if (mp) {
+                              price = order.customerCategory?.toLowerCase() === 'dairy farmer' ? mp.dairyFarmerPrice : mp.dealerPrice;
+                              if (!price || price === 0) price = Math.max(mp.dealerPrice || 0, mp.dairyFarmerPrice || 0);
+                            }
+                          }
+                          return sum + (p.quantity * price);
+                        }, 0) || 0)}
                       </td>
                     </tr>
                   ))}

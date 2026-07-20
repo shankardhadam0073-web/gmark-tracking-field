@@ -327,9 +327,11 @@ export default function EmployeeDetail() {
                   <tr className="text-slate-600">
                     <th className="p-4 font-semibold">ID</th>
                     <th className="p-4 font-semibold">Customer</th>
+                    <th className="p-4 font-semibold">Contact</th>
                     <th className="p-4 font-semibold">Village</th>
                     <th className="p-4 font-semibold">Product</th>
                     <th className="p-4 font-semibold">Date</th>
+                    <th className="p-4 font-semibold">Location</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -342,9 +344,28 @@ export default function EmployeeDetail() {
                       <tr key={visit.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                         <td className="p-4 font-medium text-slate-800">#{visit.id}</td>
                         <td className="p-4 text-slate-600">{visit.customerName}</td>
+                        <td className="p-4 text-slate-600">{visit.mobileNumber}</td>
                         <td className="p-4 text-slate-600">{visit.village || '-'}</td>
                         <td className="p-4 text-blue-600 font-medium">{visit.productName || 'N/A'}</td>
                         <td className="p-4 text-slate-600">{visit.visitDate} {visit.visitTime}</td>
+                        <td className="p-4 text-slate-600 text-xs">
+                          {visit.latitude && visit.longitude ? (
+                            <a 
+                              href={`https://www.google.com/maps/search/?api=1&query=${visit.latitude},${visit.longitude}`}
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-500 hover:underline flex items-center gap-1"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              View Map
+                            </a>
+                          ) : (
+                            'N/A'
+                          )}
+                        </td>
                       </tr>
                     ))
                   )}
