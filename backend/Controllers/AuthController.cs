@@ -37,11 +37,11 @@ namespace NavbharatAgroAPI.Controllers
                     return Unauthorized(new { message = "Invalid Password" });
                 }
 
-                if (string.IsNullOrEmpty(employee.PasswordHash) || employee.PasswordHash == "1234")
+                if (string.IsNullOrEmpty(employee.PasswordHash) || employee.PasswordHash == "1234" || employee.PasswordHash == "0000")
                 {
-                    if (request.Password == "1234")
+                    if (request.Password == "0000" || request.Password == "1234")
                     {
-                        employee.PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234");
+                        employee.PasswordHash = BCrypt.Net.BCrypt.HashPassword("0000");
                         await _context.SaveChangesAsync();
                     }
                     else
@@ -56,13 +56,22 @@ namespace NavbharatAgroAPI.Controllers
                     try 
                     {
                         isValid = BCrypt.Net.BCrypt.Verify(trimmedPassword, employee.PasswordHash);
+                        
+                        // Transition logic: if they enter 0000, and their current password hash is 1234, let them in and reset to 0000
+                        if (!isValid && trimmedPassword == "0000" && BCrypt.Net.BCrypt.Verify("1234", employee.PasswordHash)) 
+                        {
+                            employee.PasswordHash = BCrypt.Net.BCrypt.HashPassword("0000");
+                            await _context.SaveChangesAsync();
+                            isValid = true;
+                        }
                     }
                     catch
                     {
                         // Fallback if hash is invalid (e.g. plaintext)
-                        if (trimmedPassword == employee.PasswordHash)
+                        if (trimmedPassword == employee.PasswordHash || (trimmedPassword == "0000" && employee.PasswordHash == "1234"))
                         {
-                            employee.PasswordHash = BCrypt.Net.BCrypt.HashPassword(trimmedPassword);
+                            // Reset to the new default 0000
+                            employee.PasswordHash = BCrypt.Net.BCrypt.HashPassword("0000");
                             await _context.SaveChangesAsync();
                             isValid = true;
                         }

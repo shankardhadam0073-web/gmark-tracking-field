@@ -125,7 +125,7 @@ namespace NavbharatAgroAPI.Controllers
                     MobileNumber = requestDto.MobileNumber,
                     AssignedArea = requestDto.AssignedArea,
                     CreatedAt = DateTime.UtcNow,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234"),
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("0000"),
                     IsActive = true
                 };
 
