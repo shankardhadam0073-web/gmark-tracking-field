@@ -98,9 +98,10 @@ export default function DeliveredOrders() {
                             {order.products.map(p => {
                               let price = p.unitPrice;
                               if (!price || price === 0) {
-                                const mp = productsMaster.find(m => m.productName === p.productName);
+                                const mp = productsMaster.find(m => m.productName?.trim().toLowerCase() === p.productName?.trim().toLowerCase());
                                 if (mp) {
                                   price = order.customerCategory?.toLowerCase() === 'dairy farmer' ? mp.dairyFarmerPrice : mp.dealerPrice;
+                                  if (!price || price === 0) price = Math.max(mp.dealerPrice || 0, mp.dairyFarmerPrice || 0);
                                 }
                               }
                               return (
@@ -116,9 +117,10 @@ export default function DeliveredOrders() {
                         ₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => {
                           let price = p.unitPrice;
                           if (!price || price === 0) {
-                            const mp = productsMaster.find(m => m.productName === p.productName);
+                            const mp = productsMaster.find(m => m.productName?.trim().toLowerCase() === p.productName?.trim().toLowerCase());
                             if (mp) {
                               price = order.customerCategory?.toLowerCase() === 'dairy farmer' ? mp.dairyFarmerPrice : mp.dealerPrice;
+                              if (!price || price === 0) price = Math.max(mp.dealerPrice || 0, mp.dairyFarmerPrice || 0);
                             }
                           }
                           return sum + (p.quantity * price);
