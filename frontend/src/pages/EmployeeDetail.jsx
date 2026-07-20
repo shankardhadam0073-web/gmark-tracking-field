@@ -122,6 +122,7 @@ export default function EmployeeDetail() {
       'Category': order.customerCategory,
       'Route': order.route,
       'Booking Date': order.bookingDate,
+      'Products': order.products?.map(p => `${p.productName} (${p.quantity})`).join(', ') || '-',
       'Grand Total': order.grandTotal
     }));
     const wsPending = XLSX.utils.json_to_sheet(pendingData);
@@ -135,6 +136,7 @@ export default function EmployeeDetail() {
       'Category': order.customerCategory,
       'Route': order.route,
       'Booking Date': order.bookingDate,
+      'Products': order.products?.map(p => `${p.productName} (${p.quantity})`).join(', ') || '-',
       'Grand Total': order.grandTotal
     }));
     const wsDelivered = XLSX.utils.json_to_sheet(deliveredData);
@@ -246,13 +248,14 @@ export default function EmployeeDetail() {
                     <th className="p-4 font-semibold">ID</th>
                     <th className="p-4 font-semibold">Customer</th>
                     <th className="p-4 font-semibold">Date</th>
+                    <th className="p-4 font-semibold">Products</th>
                     <th className="p-4 font-semibold text-right">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pendingOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="4" className="p-8 text-center text-slate-500 border-b border-slate-100">No pending orders.</td>
+                      <td colSpan="5" className="p-8 text-center text-slate-500 border-b border-slate-100">No pending orders.</td>
                     </tr>
                   ) : (
                     pendingOrders.map(order => (
@@ -260,6 +263,7 @@ export default function EmployeeDetail() {
                         <td className="p-4 font-medium text-slate-800">#{order.id}</td>
                         <td className="p-4 text-slate-600">{order.customerName}</td>
                         <td className="p-4 text-slate-600">{order.bookingDate}</td>
+                        <td className="p-4 text-slate-600 text-xs">{order.products?.map(p => `${p.productName} (${p.quantity})`).join(', ') || '-'}</td>
                         <td className="p-4 text-amber-600 font-medium text-right">₹{order.grandTotal}</td>
                       </tr>
                     ))
@@ -284,13 +288,14 @@ export default function EmployeeDetail() {
                     <th className="p-4 font-semibold">ID</th>
                     <th className="p-4 font-semibold">Customer</th>
                     <th className="p-4 font-semibold">Date</th>
+                    <th className="p-4 font-semibold">Products</th>
                     <th className="p-4 font-semibold text-right">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {deliveredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="4" className="p-8 text-center text-slate-500 border-b border-slate-100">No delivered orders.</td>
+                      <td colSpan="5" className="p-8 text-center text-slate-500 border-b border-slate-100">No delivered orders.</td>
                     </tr>
                   ) : (
                     deliveredOrders.map(order => (
@@ -298,6 +303,7 @@ export default function EmployeeDetail() {
                         <td className="p-4 font-medium text-slate-800">#{order.id}</td>
                         <td className="p-4 text-slate-600">{order.customerName}</td>
                         <td className="p-4 text-slate-600">{order.bookingDate}</td>
+                        <td className="p-4 text-slate-600 text-xs">{order.products?.map(p => `${p.productName} (${p.quantity})`).join(', ') || '-'}</td>
                         <td className="p-4 text-emerald-600 font-medium text-right">₹{order.grandTotal}</td>
                       </tr>
                     ))

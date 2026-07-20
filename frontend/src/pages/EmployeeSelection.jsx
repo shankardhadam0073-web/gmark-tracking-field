@@ -43,7 +43,7 @@ export default function EmployeeSelection() {
 
   const getAvailableRoutes = () => {
     if (selectedEmployee === 'Kunal') return kunalRoutes;
-    if (selectedEmployee === 'Pruthviraj') return pruthvirajRoutes;
+    if (selectedEmployee === 'Prutivraj' || selectedEmployee === 'Pruthviraj') return pruthvirajRoutes;
     return [];
   };
 
