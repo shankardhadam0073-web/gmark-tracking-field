@@ -49,11 +49,14 @@ namespace NavbharatAgroAPI.Controllers
                     var empOrders = orderBookings.Where(o => o.EmployeeId == emp.Id).ToList();
                     var pendingOrders = empOrders.Count(o => o.OrderStatus == "Pending");
                     var deliveredOrders = empOrders.Count(o => o.OrderStatus == "Delivered");
-                    var totalSales = empOrders.Sum(o => o.GrandTotal);
+                    
+                    // Exclude cancelled orders from totals
+                    var validOrders = empOrders.Where(o => o.OrderStatus != "Cancelled").ToList();
+                    var totalSales = validOrders.Sum(o => o.GrandTotal);
                     var totalFieldVisits = fieldVisits.Count(v => v.EmployeeId == emp.Id);
                     
-                    var totalQuantitySold = empOrders.SelectMany(o => o.OrderProducts).Sum(p => p.Quantity);
-                    var productsSoldList = empOrders.SelectMany(o => o.OrderProducts)
+                    var totalQuantitySold = validOrders.SelectMany(o => o.OrderProducts).Sum(p => p.Quantity);
+                    var productsSoldList = validOrders.SelectMany(o => o.OrderProducts)
                         .GroupBy(p => p.ProductName)
                         .Select(g => $"{g.Key} ({g.Sum(x => x.Quantity)})")
                         .ToList();
@@ -63,7 +66,7 @@ namespace NavbharatAgroAPI.Controllers
                     {
                         EmployeeId = emp.Id,
                         EmployeeName = emp.Name,
-                        TotalOrders = empOrders.Count,
+                        TotalOrders = validOrders.Count,
                         PendingOrders = pendingOrders,
                         DeliveredOrders = deliveredOrders,
                         TotalSales = totalSales,
@@ -108,10 +111,13 @@ namespace NavbharatAgroAPI.Controllers
 
                 var pendingOrders = empOrders.Count(o => o.OrderStatus == "Pending");
                 var deliveredOrders = empOrders.Count(o => o.OrderStatus == "Delivered");
-                var totalSales = empOrders.Sum(o => o.GrandTotal);
                 
-                var totalQuantitySold = empOrders.SelectMany(o => o.OrderProducts).Sum(p => p.Quantity);
-                var productsSoldList = empOrders.SelectMany(o => o.OrderProducts)
+                // Exclude cancelled orders from totals
+                var validOrders = empOrders.Where(o => o.OrderStatus != "Cancelled").ToList();
+                var totalSales = validOrders.Sum(o => o.GrandTotal);
+                
+                var totalQuantitySold = validOrders.SelectMany(o => o.OrderProducts).Sum(p => p.Quantity);
+                var productsSoldList = validOrders.SelectMany(o => o.OrderProducts)
                     .GroupBy(p => p.ProductName)
                     .Select(g => $"{g.Key} ({g.Sum(x => x.Quantity)})")
                     .ToList();
@@ -121,7 +127,7 @@ namespace NavbharatAgroAPI.Controllers
                 {
                     EmployeeId = emp.Id,
                     EmployeeName = emp.Name,
-                    TotalOrders = empOrders.Count,
+                    TotalOrders = validOrders.Count,
                     PendingOrders = pendingOrders,
                     DeliveredOrders = deliveredOrders,
                     TotalSales = totalSales,
@@ -164,11 +170,14 @@ namespace NavbharatAgroAPI.Controllers
                     var empOrders = orderBookings.Where(o => o.EmployeeId == emp.Id).ToList();
                     var pendingOrders = empOrders.Count(o => o.OrderStatus == "Pending");
                     var deliveredOrders = empOrders.Count(o => o.OrderStatus == "Delivered");
-                    var totalSales = empOrders.Sum(o => o.GrandTotal);
-                    var totalFieldVisits = fieldVisits.Count(v => v.EmployeeId == emp.Id);
-                    var totalQuantitySold = empOrders.SelectMany(o => o.OrderProducts).Sum(p => p.Quantity);
                     
-                    var productsSoldList = empOrders.SelectMany(o => o.OrderProducts)
+                    // Exclude cancelled orders from totals
+                    var validOrders = empOrders.Where(o => o.OrderStatus != "Cancelled").ToList();
+                    var totalSales = validOrders.Sum(o => o.GrandTotal);
+                    var totalFieldVisits = fieldVisits.Count(v => v.EmployeeId == emp.Id);
+                    var totalQuantitySold = validOrders.SelectMany(o => o.OrderProducts).Sum(p => p.Quantity);
+                    
+                    var productsSoldList = validOrders.SelectMany(o => o.OrderProducts)
                         .GroupBy(p => p.ProductName)
                         .Select(g => $"{g.Key} ({g.Sum(x => x.Quantity)})")
                         .ToList();
@@ -178,7 +187,7 @@ namespace NavbharatAgroAPI.Controllers
                     {
                         EmployeeId = emp.Id,
                         EmployeeName = emp.Name,
-                        TotalOrders = empOrders.Count,
+                        TotalOrders = validOrders.Count,
                         PendingOrders = pendingOrders,
                         DeliveredOrders = deliveredOrders,
                         TotalSales = totalSales,
@@ -223,10 +232,13 @@ namespace NavbharatAgroAPI.Controllers
 
                 var pendingOrders = empOrders.Count(o => o.OrderStatus == "Pending");
                 var deliveredOrders = empOrders.Count(o => o.OrderStatus == "Delivered");
-                var totalSales = empOrders.Sum(o => o.GrandTotal);
-                var totalQuantitySold = empOrders.SelectMany(o => o.OrderProducts).Sum(p => p.Quantity);
                 
-                var productsSoldList = empOrders.SelectMany(o => o.OrderProducts)
+                // Exclude cancelled orders from totals
+                var validOrders = empOrders.Where(o => o.OrderStatus != "Cancelled").ToList();
+                var totalSales = validOrders.Sum(o => o.GrandTotal);
+                var totalQuantitySold = validOrders.SelectMany(o => o.OrderProducts).Sum(p => p.Quantity);
+                
+                var productsSoldList = validOrders.SelectMany(o => o.OrderProducts)
                     .GroupBy(p => p.ProductName)
                     .Select(g => $"{g.Key} ({g.Sum(x => x.Quantity)})")
                     .ToList();
@@ -236,7 +248,7 @@ namespace NavbharatAgroAPI.Controllers
                 {
                     EmployeeId = emp.Id,
                     EmployeeName = emp.Name,
-                    TotalOrders = empOrders.Count,
+                    TotalOrders = validOrders.Count,
                     PendingOrders = pendingOrders,
                     DeliveredOrders = deliveredOrders,
                     TotalSales = totalSales,
