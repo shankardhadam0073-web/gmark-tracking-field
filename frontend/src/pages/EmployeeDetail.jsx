@@ -7,7 +7,9 @@ import {
   getEmployeeDeliveredOrders, 
   getFieldVisits,
   getEmployeeDailyReport,
-  getEmployeeMonthlyReport
+  getEmployeeMonthlyReport,
+  deleteOrderBooking,
+  deleteFieldVisit
 } from '../services/api';
 
 export default function EmployeeDetail() {
@@ -78,6 +80,31 @@ export default function EmployeeDetail() {
     
     if (id) fetchEmployeeData();
   }, [id]);
+
+  const handleDeleteOrder = async (orderId) => {
+    if (window.confirm("Are you sure you want to delete this order?")) {
+      try {
+        await deleteOrderBooking(orderId);
+        setPendingOrders(pendingOrders.filter(o => o.id !== orderId));
+        setDeliveredOrders(deliveredOrders.filter(o => o.id !== orderId));
+      } catch (err) {
+        console.error("Error deleting order:", err);
+        alert("Failed to delete order.");
+      }
+    }
+  };
+
+  const handleDeleteVisit = async (visitId) => {
+    if (window.confirm("Are you sure you want to delete this field visit?")) {
+      try {
+        await deleteFieldVisit(visitId);
+        setFieldVisits(fieldVisits.filter(v => v.id !== visitId));
+      } catch (err) {
+        console.error("Error deleting field visit:", err);
+        alert("Failed to delete field visit.");
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -250,12 +277,13 @@ export default function EmployeeDetail() {
                     <th className="p-4 font-semibold">Date</th>
                     <th className="p-4 font-semibold">Products</th>
                     <th className="p-4 font-semibold text-right">Total</th>
+                    <th className="p-4 font-semibold text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pendingOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="p-8 text-center text-slate-500 border-b border-slate-100">No pending orders.</td>
+                      <td colSpan="6" className="p-8 text-center text-slate-500 border-b border-slate-100">No pending orders.</td>
                     </tr>
                   ) : (
                     pendingOrders.map(order => (
@@ -265,6 +293,17 @@ export default function EmployeeDetail() {
                         <td className="p-4 text-slate-600">{order.bookingDate}</td>
                         <td className="p-4 text-slate-600 text-xs">{order.products?.map(p => `${p.productName} (${p.quantity})`).join(', ') || '-'}</td>
                         <td className="p-4 text-amber-600 font-medium text-right">₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => sum + (p.rowTotal || (p.quantity * p.unitPrice)), 0) || 0)}</td>
+                        <td className="p-4 text-center">
+                          <button 
+                            onClick={() => handleDeleteOrder(order.id)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                            title="Delete Order"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -290,12 +329,13 @@ export default function EmployeeDetail() {
                     <th className="p-4 font-semibold">Date</th>
                     <th className="p-4 font-semibold">Products</th>
                     <th className="p-4 font-semibold text-right">Total</th>
+                    <th className="p-4 font-semibold text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {deliveredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="p-8 text-center text-slate-500 border-b border-slate-100">No delivered orders.</td>
+                      <td colSpan="6" className="p-8 text-center text-slate-500 border-b border-slate-100">No delivered orders.</td>
                     </tr>
                   ) : (
                     deliveredOrders.map(order => (
@@ -305,6 +345,17 @@ export default function EmployeeDetail() {
                         <td className="p-4 text-slate-600">{order.bookingDate}</td>
                         <td className="p-4 text-slate-600 text-xs">{order.products?.map(p => `${p.productName} (${p.quantity})`).join(', ') || '-'}</td>
                         <td className="p-4 text-emerald-600 font-medium text-right">₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => sum + (p.rowTotal || (p.quantity * p.unitPrice)), 0) || 0)}</td>
+                        <td className="p-4 text-center">
+                          <button 
+                            onClick={() => handleDeleteOrder(order.id)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                            title="Delete Order"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -332,12 +383,13 @@ export default function EmployeeDetail() {
                     <th className="p-4 font-semibold">Product</th>
                     <th className="p-4 font-semibold">Date</th>
                     <th className="p-4 font-semibold">Location</th>
+                    <th className="p-4 font-semibold text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {fieldVisits.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="p-8 text-center text-slate-500 border-b border-slate-100">No field visits recorded.</td>
+                      <td colSpan="8" className="p-8 text-center text-slate-500 border-b border-slate-100">No field visits recorded.</td>
                     </tr>
                   ) : (
                     fieldVisits.map(visit => (
@@ -365,6 +417,17 @@ export default function EmployeeDetail() {
                           ) : (
                             'N/A'
                           )}
+                        </td>
+                        <td className="p-4 text-center">
+                          <button 
+                            onClick={() => handleDeleteVisit(visit.id)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                            title="Delete Visit"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
                         </td>
                       </tr>
                     ))

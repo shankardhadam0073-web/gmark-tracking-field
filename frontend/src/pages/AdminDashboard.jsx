@@ -6,7 +6,8 @@ import {
   getMonthlyReport,
   createEmployee,
   deleteEmployee,
-  getCancelledOrders
+  getCancelledOrders,
+  deleteOrderBooking
 } from '../services/api';
 
 export default function AdminDashboard() {
@@ -58,6 +59,18 @@ export default function AdminDashboard() {
       } catch (err) {
         console.error(err);
         alert('Failed to delete employee.');
+      }
+    }
+  };
+
+  const handleDeleteOrder = async (orderId) => {
+    if (window.confirm("Are you sure you want to delete this cancelled order?")) {
+      try {
+        await deleteOrderBooking(orderId);
+        setCancelledOrders(cancelledOrders.filter(o => o.id !== orderId));
+      } catch (err) {
+        console.error("Error deleting order:", err);
+        alert("Failed to delete order.");
       }
     }
   };
@@ -377,12 +390,13 @@ export default function AdminDashboard() {
                       <th className="p-4 font-semibold">Date</th>
                       <th className="p-4 font-semibold">Total</th>
                       <th className="p-4 font-semibold text-red-600">Reason</th>
+                      <th className="p-4 font-semibold text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {cancelledOrders.length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="p-4 text-center text-slate-500 border-b border-slate-100">No cancelled orders found.</td>
+                        <td colSpan="8" className="p-4 text-center text-slate-500 border-b border-slate-100">No cancelled orders found.</td>
                       </tr>
                     ) : (
                       cancelledOrders.map(order => (
@@ -394,6 +408,17 @@ export default function AdminDashboard() {
                           <td className="p-4 text-slate-600">{order.bookingDate}</td>
                           <td className="p-4 text-slate-800 font-bold">₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => sum + (p.rowTotal || (p.quantity * p.unitPrice)), 0) || 0)}</td>
                           <td className="p-4 text-red-600 text-xs max-w-xs break-words">{order.cancellationReason || '-'}</td>
+                          <td className="p-4 text-center">
+                            <button 
+                              onClick={() => handleDeleteOrder(order.id)}
+                              className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                              title="Delete Order"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </td>
                         </tr>
                       ))
                     )}
