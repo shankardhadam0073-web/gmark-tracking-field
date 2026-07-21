@@ -39,6 +39,9 @@ namespace NavbharatAgroAPI.Models
         public Product? Product { get; set; }
 
         [StringLength(500)]
+        public string? ProductNames { get; set; }
+
+        [StringLength(500)]
         public string? ShortNote { get; set; }
 
         public double? Latitude { get; set; }

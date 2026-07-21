@@ -119,6 +119,7 @@ namespace NavbharatAgroAPI.Controllers
                     MobileNumber = requestDto.MobileNumber,
                     CustomerCategory = requestDto.CustomerCategory,
                     ProductId = requestDto.ProductId,
+                    ProductNames = requestDto.ProductNames,
                     ShortNote = requestDto.ShortNote,
                     Latitude = requestDto.Latitude,
                     Longitude = requestDto.Longitude,
@@ -194,6 +195,7 @@ namespace NavbharatAgroAPI.Controllers
                 visit.MobileNumber = requestDto.MobileNumber;
                 visit.CustomerCategory = requestDto.CustomerCategory;
                 visit.ProductId = requestDto.ProductId;
+                visit.ProductNames = requestDto.ProductNames;
                 visit.ShortNote = requestDto.ShortNote;
                 visit.Latitude = requestDto.Latitude;
                 visit.Longitude = requestDto.Longitude;
@@ -267,7 +269,7 @@ namespace NavbharatAgroAPI.Controllers
                 MobileNumber = visit.MobileNumber,
                 CustomerCategory = visit.CustomerCategory,
                 ProductId = visit.ProductId,
-                ProductName = visit.Product?.ProductName,
+                ProductName = !string.IsNullOrEmpty(visit.ProductNames) ? visit.ProductNames : visit.Product?.ProductName,
                 ShortNote = visit.ShortNote,
                 Latitude = visit.Latitude,
                 Longitude = visit.Longitude,

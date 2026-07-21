@@ -34,6 +34,9 @@ namespace NavbharatAgroAPI.DTOs
         public int? ProductId { get; set; }
 
         [StringLength(500)]
+        public string? ProductNames { get; set; }
+
+        [StringLength(500)]
         public string? ShortNote { get; set; }
 
         [Range(-90, 90, ErrorMessage = "Latitude must be between -90 and 90.")]

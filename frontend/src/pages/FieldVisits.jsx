@@ -16,7 +16,7 @@ export default function FieldVisits() {
     village: '',
     mobileNumber: '',
     customerCategory: '',
-    productId: '',
+    selectedProducts: [],
     shortNote: '',
     latitude: null,
     longitude: null
@@ -115,7 +115,7 @@ export default function FieldVisits() {
     }
     
     if (!formData.customerCategory) newErrors.customerCategory = "Customer Category is required";
-    if (!formData.productId) newErrors.productId = "Product is required";
+    if (!formData.selectedProducts || formData.selectedProducts.length === 0) newErrors.selectedProducts = "At least one product is required";
     if (!formData.latitude || !formData.longitude) newErrors.location = "GPS Location is required before submitting";
 
     setErrors(newErrors);
@@ -135,7 +135,8 @@ export default function FieldVisits() {
         village: formData.village,
         mobileNumber: formData.mobileNumber,
         customerCategory: formData.customerCategory,
-        productId: parseInt(formData.productId, 10),
+        productId: null,
+        productNames: formData.selectedProducts.join(', '),
         shortNote: formData.shortNote,
         latitude: formData.latitude,
         longitude: formData.longitude,
@@ -278,16 +279,33 @@ export default function FieldVisits() {
               />
 
               <div className="md:col-span-2 border-t border-slate-100 pt-6 mt-2">
-                <Select 
-                  label="Product *" 
-                  options={[
-                    { value: '', label: 'Select a product' },
-                    ...products.map(p => ({ value: p.id, label: p.productName }))
-                  ]}
-                  value={formData.productId ?? ''}
-                  onChange={(e) => handleInputChange('productId', e.target.value)}
-                  error={errors.productId}
-                />
+                <label className="block text-sm font-semibold text-slate-700 mb-3">
+                  Select Products *
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {products.map(p => (
+                    <label key={p.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${formData.selectedProducts.includes(p.productName) ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
+                      <input 
+                        type="checkbox" 
+                        className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-slate-300 cursor-pointer"
+                        checked={formData.selectedProducts.includes(p.productName)}
+                        onChange={(e) => {
+                          const isChecked = e.target.checked;
+                          handleInputChange('selectedProducts', isChecked 
+                            ? [...formData.selectedProducts, p.productName]
+                            : formData.selectedProducts.filter(name => name !== p.productName)
+                          );
+                        }}
+                      />
+                      <span className={`text-sm ${formData.selectedProducts.includes(p.productName) ? 'font-medium text-blue-800' : 'text-slate-700'}`}>
+                        {p.productName}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                {errors.selectedProducts && (
+                  <p className="mt-2 text-sm text-red-600">{errors.selectedProducts}</p>
+                )}
               </div>
               <div className="md:col-span-2">
                 <Textarea 
