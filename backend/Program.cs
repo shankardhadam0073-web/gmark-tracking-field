@@ -67,15 +67,12 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<AppDbContext>();
-        if (context.Database.GetPendingMigrations().Any())
-        {
-            context.Database.Migrate();
-        }
+        DbInitializer.SeedEmployees(context);
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database. The application will continue running.");
+        logger.LogError(ex, "An error occurred while initializing the database.");
     }
 }
 

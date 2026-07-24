@@ -20,9 +20,30 @@ body {
 }
 
 /* Ensure page wrappers don't hide the global background */
-.min-h-screen.bg-slate-50, 
+.min-h-screen.bg-slate-50,
 .min-h-screen.bg-white {
   background-color: transparent !important;
+}
+
+/* Hide outer white card frames on welcome and login pages to show watermark directly */
+.min-h-screen.bg-slate-50>.bg-white.rounded-2xl.shadow-xl {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Make booking and visit forms transparent so watermark shows through */
+form.bg-white.rounded-2xl.shadow-md {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+/* Style dashboard buttons/cards with modern glassmorphism (semi-transparent white backdrop) */
+main button.bg-white.rounded-2xl.shadow-lg {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(8px) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
 }
 
 /* Layer 1: Base Gradient + Geometric Tech Dots + Radial Accents */
@@ -35,7 +56,7 @@ body::before {
   height: 100vh;
   z-index: -2;
   pointer-events: none;
-  background: 
+  background:
     /* Soft green radial gradients */
     radial-gradient(circle at 15% 15%, rgba(11, 77, 42, 0.04) 0%, transparent 40%),
     radial-gradient(circle at 85% 85%, rgba(11, 77, 42, 0.04) 0%, transparent 40%),
@@ -57,6 +78,37 @@ body::after {
   z-index: -1;
   pointer-events: none;
   background: url('/navbharat-bg-logo.png') center center / min(85vw, 800px) no-repeat;
-  opacity: 0.10;
-  filter: blur(1px);
+  opacity: 0.15;
+  filter: blur(0.4px);
+}
+
+/* Subtle Pulse Animation for TODAY Route Card & Badge */
+@keyframes subtlePulse {
+  0%, 100% {
+    box-shadow: 0 4px 20px -2px rgba(37, 99, 235, 0.18), 0 0 0 0 rgba(37, 99, 235, 0.2);
+    border-color: rgba(37, 99, 235, 0.6);
+  }
+  50% {
+    box-shadow: 0 8px 30px 2px rgba(37, 99, 235, 0.32), 0 0 14px 4px rgba(37, 99, 235, 0.38);
+    border-color: rgba(37, 99, 235, 1);
+  }
+}
+
+.animate-subtle-pulse {
+  animation: subtlePulse 2.5s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.05);
+  }
+}
+
+.animate-badge-pulse {
+  animation: badgePulse 2.5s ease-in-out infinite;
 }

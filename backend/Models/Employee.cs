@@ -31,6 +31,11 @@ namespace NavbharatAgroAPI.Models
         
         public bool IsActive { get; set; } = true;
 
+        public string? TripStatus { get; set; } = "Not Started";
+        public DateTime? TripStartTime { get; set; }
+        public DateTime? TripEndTime { get; set; }
+        public string? SelectedRouteCode { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [JsonIgnore]

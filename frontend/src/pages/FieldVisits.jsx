@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react';
 import { createFieldVisit, getProducts } from '../services/api';
+import { getActiveRoute, isTripStarted } from '../utils/routeHelper';
 import { useNavigate } from 'react-router-dom';
 import Input from '../components/Input';
 import Select from '../components/Select';
 import Textarea from '../components/Textarea';
+import BottomNav from '../components/BottomNav';
+import DesktopSidebar from '../components/DesktopSidebar';
 
 export default function FieldVisits() {
   const navigate = useNavigate();
-  
+
   const getInitialState = () => ({
     employeeId: localStorage.getItem('employeeId') || '',
     assignedBy: localStorage.getItem('employeeName') || '',
-    route: localStorage.getItem('employeeRoute') || '',
+    route: '',
     customerName: '',
     village: '',
     mobileNumber: '',
@@ -30,6 +33,32 @@ export default function FieldVisits() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
+  const [showProductList, setShowProductList] = useState(false);
+
+  // Verify employee login session on mount and load today's active assigned route
+  useEffect(() => {
+    const currentEmpId = localStorage.getItem('employeeId') || localStorage.getItem('rememberedEmployeeId');
+    const currentEmpName = localStorage.getItem('employeeName') || localStorage.getItem('rememberedEmployeeName');
+
+    if (!currentEmpId || !currentEmpName) {
+      navigate('/welcome', { replace: true });
+      return;
+    }
+
+    const activeRoute = getActiveRoute(currentEmpName, currentEmpId);
+    const tripStarted = isTripStarted(currentEmpId);
+
+    if (!tripStarted && !localStorage.getItem(`activeRoute_${currentEmpId}`)) {
+      setApiError("Please start today's trip to load your assigned route.");
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      employeeId: currentEmpId,
+      assignedBy: currentEmpName,
+      route: activeRoute
+    }));
+  }, [navigate]);
 
   // Fetch products on mount
   useEffect(() => {
@@ -50,7 +79,7 @@ export default function FieldVisits() {
   // Update live clock until location is captured
   useEffect(() => {
     if (formData.latitude && formData.longitude) return;
-    
+
     const timer = setInterval(() => {
       setDisplayTime(new Date());
     }, 1000);
@@ -72,9 +101,23 @@ export default function FieldVisits() {
     if (apiError) setApiError('');
   };
 
+  const handleProductToggle = (productName) => {
+    setFormData(prev => {
+      const exists = prev.selectedProducts.includes(productName);
+      const updated = exists
+        ? prev.selectedProducts.filter(p => p !== productName)
+        : [...prev.selectedProducts, productName];
+      return { ...prev, selectedProducts: updated };
+    });
+    if (errors.selectedProducts) setErrors(prev => ({ ...prev, selectedProducts: null }));
+    if (showSuccess) setShowSuccess(false);
+    if (apiError) setApiError('');
+  };
+
   const captureLocation = () => {
     setIsLocating(true);
     if (errors.location) setErrors(prev => ({ ...prev, location: null }));
+    if (apiError) setApiError('');
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -107,16 +150,16 @@ export default function FieldVisits() {
     if (!formData.route.trim()) newErrors.route = "Route is required";
     if (!formData.customerName.trim()) newErrors.customerName = "Customer Name is required";
     if (!formData.village.trim()) newErrors.village = "Village is required";
-    
+
     if (!formData.mobileNumber.trim()) {
       newErrors.mobileNumber = "Mobile Number is required";
     } else if (!/^\d{10}$/.test(formData.mobileNumber)) {
       newErrors.mobileNumber = "Must be exactly 10 digits";
     }
-    
+
     if (!formData.customerCategory) newErrors.customerCategory = "Customer Category is required";
     if (!formData.selectedProducts || formData.selectedProducts.length === 0) newErrors.selectedProducts = "At least one product is required";
-    if (!formData.latitude || !formData.longitude) newErrors.location = "GPS Location is required before submitting";
+    if (!formData.latitude || !formData.longitude) newErrors.location = "Please click '📍 Capture Location' before submitting";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -124,41 +167,47 @@ export default function FieldVisits() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      const now = new Date();
-      
-      const payload = {
-        employeeId: parseInt(formData.employeeId, 10),
-        assignedBy: formData.assignedBy,
-        route: formData.route,
-        customerName: formData.customerName,
-        village: formData.village,
-        mobileNumber: formData.mobileNumber,
-        customerCategory: formData.customerCategory,
-        productId: null,
-        productNames: formData.selectedProducts.join(', '),
-        shortNote: formData.shortNote,
-        latitude: formData.latitude,
-        longitude: formData.longitude,
-        visitDate: now.toLocaleDateString('en-CA'), // YYYY-MM-DD
-        visitTime: now.toLocaleTimeString('en-US', { hour12: false }) // HH:mm:ss
-      };
 
-      setIsSubmitting(true);
-      setApiError('');
-      
-      try {
-        await createFieldVisit(payload);
-        setShowSuccess(true);
-        setFormData(getInitialState());
-        setDisplayTime(new Date()); // reset clock
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } catch (err) {
-        console.error("API error:", err);
-        setApiError(err.response?.data?.message || err.message || 'An error occurred while submitting.');
-      } finally {
-        setIsSubmitting(false);
+    if (!validateForm()) {
+      if (!formData.latitude || !formData.longitude) {
+        setApiError("Please click '📍 Capture Location' to attach your GPS coordinates before submitting.");
       }
+      return;
+    }
+
+    const now = new Date();
+
+    const payload = {
+      employeeId: parseInt(formData.employeeId, 10),
+      assignedBy: formData.assignedBy,
+      route: formData.route,
+      customerName: formData.customerName,
+      village: formData.village,
+      mobileNumber: formData.mobileNumber,
+      customerCategory: formData.customerCategory,
+      productId: null,
+      productNames: formData.selectedProducts.join(', '),
+      shortNote: formData.shortNote,
+      latitude: formData.latitude,
+      longitude: formData.longitude,
+      visitDate: now.toLocaleDateString('en-CA'), // YYYY-MM-DD
+      visitTime: now.toLocaleTimeString('en-US', { hour12: false }) // HH:mm:ss
+    };
+
+    setIsSubmitting(true);
+    setApiError('');
+
+    try {
+      await createFieldVisit(payload);
+      setShowSuccess(true);
+      setFormData(getInitialState());
+      setDisplayTime(new Date()); // reset clock
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      console.error("API error:", err);
+      setApiError(err.response?.data?.message || err.message || 'An error occurred while submitting.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -178,12 +227,13 @@ export default function FieldVisits() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col p-4 md:p-8">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:pl-64 p-4 md:p-8 pb-20 md:pb-8 transition-all">
+      <DesktopSidebar />
       <div className="max-w-3xl mx-auto w-full">
-        
+
         {/* Header */}
         <div className="flex items-center mb-8 gap-4">
-          <button 
+          <button
             onClick={() => navigate('/employee-dashboard')}
             className="p-2 bg-white hover:bg-slate-100 shadow-sm border border-slate-200 rounded-full transition-colors active:scale-95"
             type="button"
@@ -235,7 +285,7 @@ export default function FieldVisits() {
         )}
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-md border border-slate-100 overflow-hidden">
-          
+
           {/* Customer & Visit Details Section */}
           <div className="p-6 md:p-8 space-y-6">
             <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
@@ -244,73 +294,109 @@ export default function FieldVisits() {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
 
 
-              <Input 
-                label="Customer Name *" 
-                placeholder="Enter full name" 
+
+              <Input
+                label="Customer Name *"
+                placeholder="Enter full name"
                 value={formData.customerName ?? ''}
                 onChange={(e) => handleInputChange('customerName', e.target.value)}
                 error={errors.customerName}
               />
-              <Input 
-                label="Mobile Number *" 
+              <Input
+                label="Mobile Number *"
                 type="tel"
-                placeholder="10 digit number" 
+                placeholder="10 digit number"
                 maxLength={10}
                 value={formData.mobileNumber ?? ''}
                 onChange={(e) => handleInputChange('mobileNumber', e.target.value.replace(/\D/g, ''))}
                 error={errors.mobileNumber}
               />
-              <Select 
-                label="Customer Category *" 
+              <Select
+                label="Customer Category *"
                 options={categoryOptions}
                 value={formData.customerCategory ?? ''}
                 onChange={(e) => handleInputChange('customerCategory', e.target.value)}
                 error={errors.customerCategory}
               />
-              <Input 
-                label="Village *" 
-                placeholder="Enter village name" 
+              <Input
+                label="Village *"
+                placeholder="Enter village name"
                 value={formData.village ?? ''}
                 onChange={(e) => handleInputChange('village', e.target.value)}
                 error={errors.village}
               />
+              <Input
+                label="Route *"
+                placeholder="Today's assigned route"
+                value={formData.route ?? ''}
+                readOnly={true}
+                className="bg-slate-100/70 text-slate-700 font-semibold cursor-not-allowed"
+                error={errors.route}
+              />
 
-              <div className="md:col-span-2 border-t border-slate-100 pt-6 mt-2">
-                <label className="block text-sm font-semibold text-slate-700 mb-3">
+              <div className="md:col-span-2 border-t border-slate-100 pt-6 mt-2 relative">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Select Products *
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {products.map(p => (
-                    <label key={p.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${formData.selectedProducts.includes(p.productName) ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
-                      <input 
-                        type="checkbox" 
-                        className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-slate-300 cursor-pointer"
-                        checked={formData.selectedProducts.includes(p.productName)}
-                        onChange={(e) => {
-                          const isChecked = e.target.checked;
-                          handleInputChange('selectedProducts', isChecked 
-                            ? [...formData.selectedProducts, p.productName]
-                            : formData.selectedProducts.filter(name => name !== p.productName)
-                          );
-                        }}
-                      />
-                      <span className={`text-sm ${formData.selectedProducts.includes(p.productName) ? 'font-medium text-blue-800' : 'text-slate-700'}`}>
-                        {p.productName}
-                      </span>
-                    </label>
-                  ))}
-                </div>
+
+                {/* Collapsible Dropdown Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowProductList(!showProductList)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all text-left focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <span className="text-slate-600 text-sm truncate pr-4">
+                    {formData.selectedProducts.length > 0
+                      ? `${formData.selectedProducts.length} product(s) selected: ${formData.selectedProducts.join(', ')}`
+                      : 'Click to select products'
+                    }
+                  </span>
+                  <svg
+                    className={`w-5 h-5 text-slate-400 transition-transform duration-200 shrink-0 ${showProductList ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {/* Collapsible List Container */}
+                {showProductList && (
+                  <div className="mt-3 max-h-60 overflow-y-auto border border-slate-200 rounded-xl p-4 space-y-3 bg-slate-50/30 scrollbar-thin shadow-inner animate-fadeIn">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {products.map(p => (
+                        <label key={p.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${formData.selectedProducts.includes(p.productName) ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
+                          <input
+                            type="checkbox"
+                            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-slate-300 cursor-pointer"
+                            checked={formData.selectedProducts.includes(p.productName)}
+                            onChange={(e) => {
+                              const isChecked = e.target.checked;
+                              handleInputChange('selectedProducts', isChecked
+                                ? [...formData.selectedProducts, p.productName]
+                                : formData.selectedProducts.filter(name => name !== p.productName)
+                              );
+                            }}
+                          />
+                          <span className={`text-sm ${formData.selectedProducts.includes(p.productName) ? 'font-medium text-blue-800' : 'text-slate-700'}`}>
+                            {p.productName}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {errors.selectedProducts && (
                   <p className="mt-2 text-sm text-red-600">{errors.selectedProducts}</p>
                 )}
               </div>
               <div className="md:col-span-2">
-                <Textarea 
-                  label="Short Note" 
-                  placeholder="Add any additional remarks or observations..." 
+                <Textarea
+                  label="Short Note"
+                  placeholder="Add any additional remarks or observations..."
                   value={formData.shortNote ?? ''}
                   onChange={(e) => handleInputChange('shortNote', e.target.value)}
                   error={errors.shortNote}
@@ -327,7 +413,7 @@ export default function FieldVisits() {
             </h2>
 
             <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-6 justify-between">
-              
+
               <div className="flex-1 w-full space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm">
                   <span className="text-slate-500 font-medium w-24">Date & Time:</span>
@@ -390,13 +476,7 @@ export default function FieldVisits() {
 
           {/* Action Buttons */}
           <div className="p-6 md:p-8 border-t border-slate-100 bg-slate-50 flex flex-col-reverse sm:flex-row justify-end gap-4">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="px-6 py-3 rounded-xl font-semibold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 transition-colors w-full sm:w-auto active:scale-95"
-            >
-              Reset Form
-            </button>
+
             <button
               type="submit"
               disabled={isSubmitting}
@@ -423,6 +503,7 @@ export default function FieldVisits() {
 
         </form>
       </div>
+      <BottomNav />
     </div>
   );
 }

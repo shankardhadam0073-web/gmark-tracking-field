@@ -4,7 +4,6 @@ const BASE_URL = 'http://localhost:5159/api';
 async function resetEmployees() {
   try {
     const newEmployees = [
-      { id: 2, name: 'Prutivraj', employeeCode: 'EMP002', mobileNumber: '1234567891', assignedArea: 'Area 2' },
       { id: 3, name: 'Rohit', employeeCode: 'EMP003', mobileNumber: '1234567892', assignedArea: 'Area 3' }
     ];
 

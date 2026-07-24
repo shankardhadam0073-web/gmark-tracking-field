@@ -218,8 +218,25 @@ export default function EmployeeDetail() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 -mt-10 mb-12 relative z-10 space-y-8">
         
         {/* Info & Summary Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-100 flex flex-col justify-center items-center transform transition-transform hover:-translate-y-1">
+            <h3 className="text-sm font-medium text-slate-500 mb-1">Trip Status</h3>
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mt-1 ${
+              (employee?.tripStatus || localStorage.getItem(`tripStatus_${employee?.id}`)) === 'Started'
+                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                : 'bg-slate-100 text-slate-600 border border-slate-200'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${(employee?.tripStatus || localStorage.getItem(`tripStatus_${employee?.id}`)) === 'Started' ? 'bg-emerald-500 animate-ping' : 'bg-slate-400'}`} />
+              {(employee?.tripStatus || localStorage.getItem(`tripStatus_${employee?.id}`)) === 'Started' ? 'Started' : 'Not Started'}
+            </span>
+            {(employee?.tripStatus || localStorage.getItem(`tripStatus_${employee?.id}`)) === 'Started' && (
+              <span className="text-xs text-slate-500 font-medium mt-1">
+                Start Time: {employee?.tripStartTime ? new Date(employee.tripStartTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : (localStorage.getItem(`tripStartTime_${employee?.id}`) || '--')}
+              </span>
+            )}
+          </div>
+
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-100 flex flex-col justify-center items-center transform transition-transform hover:-translate-y-1">
             <h3 className="text-sm font-medium text-slate-500 mb-1">Selected Route</h3>
             <p className="text-xl font-bold text-slate-800 text-center truncate w-full">{selectedRoute}</p>
@@ -277,13 +294,14 @@ export default function EmployeeDetail() {
                     <th className="p-4 font-semibold">Date</th>
                     <th className="p-4 font-semibold">Products</th>
                     <th className="p-4 font-semibold text-right">Total</th>
+                    <th className="p-4 font-semibold text-center">Location</th>
                     <th className="p-4 font-semibold text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pendingOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="p-8 text-center text-slate-500 border-b border-slate-100">No pending orders.</td>
+                      <td colSpan="7" className="p-8 text-center text-slate-500 border-b border-slate-100">No pending orders.</td>
                     </tr>
                   ) : (
                     pendingOrders.map(order => (
@@ -293,6 +311,24 @@ export default function EmployeeDetail() {
                         <td className="p-4 text-slate-600">{order.bookingDate}</td>
                         <td className="p-4 text-slate-600 text-xs">{order.products?.map(p => `${p.productName} (${p.quantity})`).join(', ') || '-'}</td>
                         <td className="p-4 text-amber-600 font-medium text-right">₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => sum + (p.rowTotal || (p.quantity * p.unitPrice)), 0) || 0)}</td>
+                        <td className="p-4 text-slate-600 text-xs text-center">
+                          {order.latitude && order.longitude ? (
+                            <a 
+                              href={`https://www.google.com/maps/search/?api=1&query=${order.latitude},${order.longitude}`}
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-500 hover:underline inline-flex items-center gap-1 justify-center"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              View Map
+                            </a>
+                          ) : (
+                            'N/A'
+                          )}
+                        </td>
                         <td className="p-4 text-center">
                           <button 
                             onClick={() => handleDeleteOrder(order.id)}
@@ -329,13 +365,14 @@ export default function EmployeeDetail() {
                     <th className="p-4 font-semibold">Date</th>
                     <th className="p-4 font-semibold">Products</th>
                     <th className="p-4 font-semibold text-right">Total</th>
+                    <th className="p-4 font-semibold text-center">Location</th>
                     <th className="p-4 font-semibold text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {deliveredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="p-8 text-center text-slate-500 border-b border-slate-100">No delivered orders.</td>
+                      <td colSpan="7" className="p-8 text-center text-slate-500 border-b border-slate-100">No delivered orders.</td>
                     </tr>
                   ) : (
                     deliveredOrders.map(order => (
@@ -345,6 +382,24 @@ export default function EmployeeDetail() {
                         <td className="p-4 text-slate-600">{order.bookingDate}</td>
                         <td className="p-4 text-slate-600 text-xs">{order.products?.map(p => `${p.productName} (${p.quantity})`).join(', ') || '-'}</td>
                         <td className="p-4 text-emerald-600 font-medium text-right">₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => sum + (p.rowTotal || (p.quantity * p.unitPrice)), 0) || 0)}</td>
+                        <td className="p-4 text-slate-600 text-xs text-center">
+                          {order.latitude && order.longitude ? (
+                            <a 
+                              href={`https://www.google.com/maps/search/?api=1&query=${order.latitude},${order.longitude}`}
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-500 hover:underline inline-flex items-center gap-1 justify-center"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              View Map
+                            </a>
+                          ) : (
+                            'N/A'
+                          )}
+                        </td>
                         <td className="p-4 text-center">
                           <button 
                             onClick={() => handleDeleteOrder(order.id)}

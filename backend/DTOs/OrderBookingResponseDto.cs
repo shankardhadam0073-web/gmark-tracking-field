@@ -19,6 +19,10 @@ namespace NavbharatAgroAPI.DTOs
         public DateOnly BookingDate { get; set; }
         public TimeOnly BookingTime { get; set; }
         public string? CancellationReason { get; set; }
+
+        public double? Latitude { get; set; }
+
+        public double? Longitude { get; set; }
         
         public List<OrderProductResponseDto> Products { get; set; } = new List<OrderProductResponseDto>();
         

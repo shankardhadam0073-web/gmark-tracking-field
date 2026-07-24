@@ -10,14 +10,26 @@ export default function EmployeePassword() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState('');
 
-  const { employeeId, employeeName, employeeRoute } = location.state || {};
+  const locationState = location.state || {};
+  const employeeId = locationState.employeeId || localStorage.getItem('rememberedEmployeeId') || localStorage.getItem('employeeId');
+  const employeeName = locationState.employeeName || localStorage.getItem('rememberedEmployeeName') || localStorage.getItem('employeeName');
 
   useEffect(() => {
-    // If no state is passed, redirect back to selection
-    if (employeeId === undefined || employeeId === null || !employeeName || !employeeRoute) {
-      navigate('/employee-selection', { replace: true });
+    // If no employee is selected or remembered, redirect back to Welcome
+    if (!employeeId || !employeeName) {
+      navigate('/welcome', { replace: true });
     }
-  }, [employeeId, employeeName, employeeRoute, navigate]);
+  }, [employeeId, employeeName, navigate]);
+
+  const handleSwitchProfile = () => {
+    localStorage.removeItem('rememberedEmployeeName');
+    localStorage.removeItem('rememberedEmployeeId');
+    localStorage.removeItem('employeeName');
+    localStorage.removeItem('employeeId');
+    localStorage.removeItem('employeeToken');
+    localStorage.removeItem('employeeRoute');
+    navigate('/welcome');
+  };
 
   const handleLogin = async (e) => {
     if (e) e.preventDefault();
@@ -26,22 +38,18 @@ export default function EmployeePassword() {
     
     try {
       const cleanPassword = password.trim();
-      const payload = { employeeId, password: cleanPassword };
-      
-      console.log('--- MOBILE DEBUG INFO ---');
-      console.log('Employee ID:', employeeId);
-      console.log('Route ID:', employeeRoute);
-      console.log('Password Length:', cleanPassword.length);
-      console.log('API Base URL:', import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5159/api`);
-      console.log('Request Payload:', payload);
+      const payload = { employeeId: parseInt(employeeId, 10), password: cleanPassword };
       
       const response = await loginEmployee(payload);
       
       // Save info on success
       localStorage.setItem('employeeId', response.employeeId.toString());
       localStorage.setItem('employeeName', response.employeeName);
-      localStorage.setItem('employeeToken', response.token);
-      localStorage.setItem('employeeRoute', employeeRoute);
+      localStorage.setItem('rememberedEmployeeId', response.employeeId.toString());
+      localStorage.setItem('rememberedEmployeeName', response.employeeName);
+      if (response.token) {
+        localStorage.setItem('employeeToken', response.token);
+      }
       
       navigate('/employee-dashboard');
     } catch (err) {
@@ -50,18 +58,18 @@ export default function EmployeePassword() {
     }
   };
 
-  if (employeeId === undefined || employeeId === null) return null;
+  if (!employeeId || !employeeName) return null;
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 md:p-8">
       <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-lg w-full text-center border border-slate-100">
         
-        <img src="/gmark-logo.png" alt="Gmark-Tracking-Field Logo" className="h-28 w-28 mx-auto mb-6 rounded-2xl shadow-lg object-contain bg-white" />
+        <img src="/gmark-logo.png" alt="Navbharat Agro Service Logo" className="h-28 w-28 mx-auto mb-6 rounded-2xl shadow-lg object-contain bg-white" />
 
         <h1 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">
           Employee Login
         </h1>
-        <p className="text-slate-500 mb-8 text-sm">Please verify your identity to continue</p>
+        <p className="text-slate-500 mb-8 text-sm">Please verify your password to continue</p>
 
         {authError && (
           <div className="mb-6 p-3 bg-red-50 text-red-600 rounded-xl text-sm font-medium">
@@ -71,15 +79,19 @@ export default function EmployeePassword() {
 
         <div className="space-y-6 text-left">
           
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <div className="mb-3">
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Employee</label>
-              <div className="text-lg font-medium text-slate-900">{employeeName}</div>
-            </div>
+          {/* Selected Employee Display */}
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Selected Route</label>
-              <div className="text-md text-slate-700">{employeeRoute}</div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Employee Profile</label>
+              <div className="text-lg font-bold text-slate-900">{employeeName ? employeeName.replace(/\s+Employee$/i, '').trim() : ''}</div>
             </div>
+            <button
+              type="button"
+              onClick={handleSwitchProfile}
+              className="text-xs text-blue-600 font-semibold hover:underline bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 transition-colors"
+            >
+              Switch Profile
+            </button>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -117,7 +129,7 @@ export default function EmployeePassword() {
             <div className="flex gap-4 pt-2">
               <button 
                 type="button" 
-                onClick={() => navigate('/employee-selection')}
+                onClick={handleSwitchProfile}
                 disabled={isSubmitting}
                 className="flex-1 py-4 px-6 rounded-xl text-lg font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all flex justify-center items-center gap-2"
               >
@@ -142,7 +154,7 @@ export default function EmployeePassword() {
                     Verifying...
                   </span>
                 ) : (
-                  'Continue'
+                  'Login'
                 )}
               </button>
             </div>

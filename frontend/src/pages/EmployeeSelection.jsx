@@ -10,7 +10,7 @@ export default function EmployeeSelection() {
   const [selectedRoute, setSelectedRoute] = useState(location.state?.employeeRoute || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  
+
   // Custom dropdown state
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [routeSearch, setRouteSearch] = useState('');
@@ -19,7 +19,7 @@ export default function EmployeeSelection() {
 
   const employeeOptions = [
     { value: 'Kunal', label: 'Kunal' },
-    { value: 'Prutivraj', label: 'Prutivraj' },
+    { value: 'Pruthviraj', label: 'Pruthviraj' },
     { value: 'Rohit', label: 'Rohit' }
   ];
 
@@ -28,23 +28,36 @@ export default function EmployeeSelection() {
     { code: 'K002', day: 'Thursday', path: 'Kumbharwada → Minche → Kur → Shirgaon → Margoli → Waghapurwadi → Kut → Kenavade → Patane → Mudal → Bidri → Kumbharwada' },
     { code: 'K003', day: 'Friday', path: 'Kumbharwada → Margoli → Yamakar → Kurundwad → Mhasave → Arale → Nendurkarwadi → Shengaon → Kumbharwada' },
     { code: 'K004', day: 'Monday', path: 'Ku. Walwe → Mu. Nitta → Sarawade → Solankur → Digawade → Borbet → Nathawade → Bhangoli → Kapileshwar → Turumb → Mhalunge → Borawade → Bidri → Ku. Walwe' },
-    { code: 'K005', day: 'Tuesday', path: 'Ku. Walwe → Chalobachi Wadi → Ma. Sarawade → Panundre → Radhanagari → Ghotawade → Keloshi → Phejiwade → Kaulav → Bha. Harawade → Hirase → Bhanaje → Tarale → Pendurkarwadi → Baradwadi → Talyachi → Yede → Arjunwada → Ku. Walwe' },
+    { code: 'K005', day: 'Tuesday', path: 'Ku. Walwe → Chalobachi Wadi → Ma. Sarawade → Panundre → Radhanagari → Ghotawade → Keloshi → Phejiwade → Kaulav → Bha. Harawade → Hirase → Bhanaje → Tarale → Pendurkarwadi → Baradwadi → Talyachi → Yede → Arjunwada ' },
     { code: 'K006', day: 'Saturday', path: 'Ku. Walwe → Margoli → Waghapur → Madilage → Madilage Budruk → Murud → Chimgaon → Gangapur → Solankur → Pimpalwadi → Ku. Walwe' }
   ];
 
   const pruthvirajRoutes = [
-    { code: 'P001', day: 'Route 1', path: 'Nesari → Batakanagle → Mahagaon → Hasurvadi → Halkarni → Terani → Mungurvadi → Hebbal Jal → Bidrewadi → Waghrali' },
-    { code: 'P002', day: 'Route 2', path: 'Kolindre → Sule → Umbarwadi → Harli → Bhadgaon → Gadhinglaj' },
-    { code: 'P003', day: 'Route 3', path: 'Inchnal → Gajargaon → Atyal → Karmbali → Aynapur → Bhadwan → Kadgaon → Wadarge → Bahirewadi' },
-    { code: 'P004', day: 'Route 4', path: 'Waghrali → Bidrewadi → Hebbal Jal → Shattyahalli → Salamvadi → Modge → Daddi → Kalvikatti' },
-    { code: 'P005', day: 'Route 5', path: 'Kandeewadi → Kupe → Saroli → Sambre → Kumari → Yamehatti' },
-    { code: 'P006', day: 'Route 6', path: 'Gadhinglaj → Dundge → Nul → Nilji → Hebbal → Khandal' }
+    { code: 'P001', day: 'Monday', path: 'Nesari → Batakanagle → Mahagaon → Hasurvadi → Halkarni → Terani → Mungurvadi → Hebbal Jal → Bidrewadi → Waghrali' },
+    { code: 'P002', day: 'Tuesday', path: 'Kolindre → Sule → Umbarwadi → Harli → Bhadgaon → Gadhinglaj' },
+    { code: 'P003', day: 'Wednesday', path: 'Inchnal → Gajargaon → Atyal → Karmbali → Aynapur → Bhadwan → Kadgaon → Wadarge → Bahirewadi' },
+    { code: 'P004', day: 'Thursday', path: 'Waghrali → Bidrewadi → Hebbal Jal → Shattyahalli → Salamvadi → Modge → Daddi → Kalvikatti' },
+    { code: 'P005', day: 'Friday', path: 'Kandeewadi → Kupe → Saroli → Sambre → Kumari → Yamehatti' },
+    { code: 'P006', day: 'Saturday', path: 'Gadhinglaj → Dundge → Nul → Nilji → Hebbal → Khandal' }
   ];
 
   const getAvailableRoutes = () => {
     if (selectedEmployee === 'Kunal') return kunalRoutes;
     if (selectedEmployee === 'Prutivraj' || selectedEmployee === 'Pruthviraj') return pruthvirajRoutes;
     return [];
+  };
+
+  const getRouteDisplayLabel = (routeVal) => {
+    if (!routeVal) return '';
+    const available = getAvailableRoutes();
+    const match = available.find(r => r.code === routeVal || r.path === routeVal);
+    if (match && match.path) {
+      const parts = match.path.split('→').map(p => p.trim());
+      if (parts.length >= 2) {
+        return `${parts[0]} - ${parts[parts.length - 1]}`;
+      }
+    }
+    return routeVal;
   };
 
   useEffect(() => {
@@ -85,7 +98,7 @@ export default function EmployeeSelection() {
     try {
       const employees = await getEmployees();
       let emp = employees.find(e => e.name === selectedEmployee || (e.name && e.name.includes(selectedEmployee)));
-      
+
       let empId = 1;
 
       if (emp) {
@@ -122,7 +135,7 @@ export default function EmployeeSelection() {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 md:p-8">
       <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-lg w-full text-center border border-slate-100">
-        
+
         <img src="/gmark-logo.png" alt="Gmark-Tracking-Field Logo" className="h-24 w-24 mx-auto mb-6 rounded-2xl shadow-md object-contain bg-white" />
 
         <h1 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">
@@ -158,13 +171,13 @@ export default function EmployeeSelection() {
         ) : selectedEmployee ? (
           <div className="mb-8 text-left relative route-dropdown-container">
             <label className="block text-sm font-medium text-slate-700 mb-2">Select Route</label>
-            
-            <div 
+
+            <div
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white flex justify-between items-center cursor-pointer hover:border-slate-300 transition-shadow focus:outline-none focus:ring-2 focus:ring-blue-100"
             >
               <span className={selectedRoute ? "text-slate-900 font-medium" : "text-slate-500"}>
-                {selectedRoute ? `Route ${selectedRoute} Selected` : "Select your route..."}
+                {selectedRoute ? `${getRouteDisplayLabel(selectedRoute)} Selected` : "Select your route..."}
               </span>
               <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -184,50 +197,52 @@ export default function EmployeeSelection() {
                   />
                 </div>
                 <div className="overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-slate-200">
-                  {getAvailableRoutes().filter(r => 
-                    r.code.toLowerCase().includes(routeSearch.toLowerCase()) || 
+                  {getAvailableRoutes().filter(r =>
+                    r.code.toLowerCase().includes(routeSearch.toLowerCase()) ||
                     r.day.toLowerCase().includes(routeSearch.toLowerCase()) ||
                     r.path.toLowerCase().includes(routeSearch.toLowerCase())
-                  ).map((route) => (
-                    <div 
-                      key={route.code}
-                      onClick={() => {
-                        setSelectedRoute(route.code);
-                        setIsDropdownOpen(false);
-                        setRouteSearch('');
-                      }}
-                      className={`p-3 rounded-xl mb-1 cursor-pointer transition-all ${selectedRoute === route.code ? 'bg-blue-50 border border-blue-200 shadow-sm' : 'hover:bg-slate-50 border border-transparent hover:border-slate-200'}`}
-                    >
-                      <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-2">
-                        <span className="font-semibold text-slate-800">📅 {route.day}</span>
-                        <span className="bg-white border border-slate-200 text-slate-700 px-2 py-1 rounded text-xs font-bold shadow-sm">🆔 {route.code}</span>
+                  ).map((route) => {
+                    const routeLabel = getRouteDisplayLabel(route.code);
+                    const isSelected = selectedRoute === route.code || selectedRoute === routeLabel;
+                    return (
+                      <div
+                        key={route.code}
+                        onClick={() => {
+                          setSelectedRoute(routeLabel);
+                          setIsDropdownOpen(false);
+                          setRouteSearch('');
+                        }}
+                        className={`p-3 rounded-xl mb-1 cursor-pointer transition-all ${isSelected ? 'bg-blue-50 border border-blue-200 shadow-sm' : 'hover:bg-slate-50 border border-transparent hover:border-slate-200'}`}
+                      >
+                        <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-2">
+                          <span className="font-semibold text-slate-800">📅 {route.day} ({routeLabel})</span>
+                        </div>
+                        <p className="text-sm text-slate-600 leading-relaxed text-left">📍 {route.path}</p>
                       </div>
-                      <p className="text-sm text-slate-600 leading-relaxed text-left">📍 {route.path}</p>
-                    </div>
-                  ))}
-                  {getAvailableRoutes().filter(r => 
-                    r.code.toLowerCase().includes(routeSearch.toLowerCase()) || 
+                    );
+                  })}
+                  {getAvailableRoutes().filter(r =>
+                    r.code.toLowerCase().includes(routeSearch.toLowerCase()) ||
                     r.day.toLowerCase().includes(routeSearch.toLowerCase()) ||
                     r.path.toLowerCase().includes(routeSearch.toLowerCase())
                   ).length === 0 && (
-                    <div className="p-6 text-center text-slate-500 text-sm">
-                      No matching routes found.
-                    </div>
-                  )}
+                      <div className="p-6 text-center text-slate-500 text-sm">
+                        No matching routes found.
+                      </div>
+                    )}
                 </div>
               </div>
             )}
           </div>
         ) : null}
 
-        <button 
+        <button
           onClick={handleContinue}
           disabled={isSubmitting || !selectedEmployee || !selectedRoute}
-          className={`w-full py-4 px-6 rounded-xl text-lg font-semibold shadow-md transition-all flex justify-center items-center gap-2 ${
-            isSubmitting || !selectedEmployee || !selectedRoute
-              ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg'
-          }`}
+          className={`w-full py-4 px-6 rounded-xl text-lg font-semibold shadow-md transition-all flex justify-center items-center gap-2 ${isSubmitting || !selectedEmployee || !selectedRoute
+            ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+            : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg'
+            }`}
         >
           {isSubmitting ? (
             <span className="flex items-center gap-2">
