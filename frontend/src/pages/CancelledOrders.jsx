@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getEmployeeCancelledOrders } from '../services/api';
+import BottomNav from '../components/BottomNav';
+import DesktopSidebar from '../components/DesktopSidebar';
 
 export default function CancelledOrders() {
   const navigate = useNavigate();
@@ -11,7 +13,7 @@ export default function CancelledOrders() {
   useEffect(() => {
     const employeeId = localStorage.getItem('employeeId');
     if (!employeeId) {
-      navigate('/employee-selection');
+      navigate('/welcome');
       return;
     }
 
@@ -31,7 +33,8 @@ export default function CancelledOrders() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:pl-64 transition-all">
+      <DesktopSidebar />
       <header className="bg-red-500 text-white pt-12 pb-20 px-6 rounded-b-3xl shadow-md">
         <div className="max-w-6xl mx-auto flex justify-between items-end">
           <div>
@@ -71,13 +74,14 @@ export default function CancelledOrders() {
                     <th className="p-4 font-semibold">Date</th>
                     <th className="p-4 font-semibold">Products</th>
                     <th className="p-4 font-semibold">Total</th>
+                    <th className="p-4 font-semibold text-center">Location</th>
                     <th className="p-4 rounded-tr-lg font-semibold text-right">Reason</th>
                   </tr>
                 </thead>
                 <tbody>
                   {orders.length === 0 && (
                     <tr>
-                      <td colSpan="7" className="p-4 text-center text-slate-500 border-b border-slate-100">
+                      <td colSpan="8" className="p-4 text-center text-slate-500 border-b border-slate-100">
                         No cancelled orders found.
                       </td>
                     </tr>
@@ -100,6 +104,24 @@ export default function CancelledOrders() {
                         )}
                       </td>
                       <td className="p-4 text-slate-600 font-medium">₹{order.grandTotal > 0 ? order.grandTotal : (order.products?.reduce((sum, p) => sum + (p.rowTotal || (p.quantity * p.unitPrice)), 0) || 0)}</td>
+                      <td className="p-4 text-slate-600 text-xs text-center">
+                        {order.latitude && order.longitude ? (
+                          <a 
+                            href={`https://www.google.com/maps/search/?api=1&query=${order.latitude},${order.longitude}`}
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:underline inline-flex items-center gap-1 justify-center"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            View Map
+                          </a>
+                        ) : (
+                          'N/A'
+                        )}
+                      </td>
                       <td className="p-4 text-right text-red-600 text-sm max-w-xs break-words">
                         {order.cancellationReason || '-'}
                       </td>
@@ -111,6 +133,7 @@ export default function CancelledOrders() {
           )}
         </div>
       </main>
+      <BottomNav />
     </div>
   );
 }

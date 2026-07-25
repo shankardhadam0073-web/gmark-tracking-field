@@ -302,6 +302,8 @@ namespace NavbharatAgroAPI.Controllers
                     OrderStatus = "Pending",
                     BookingDate = DateOnly.FromDateTime(requestDto.BookingDate),
                     BookingTime = parsedTime,
+                    Latitude = requestDto.Latitude,
+                    Longitude = requestDto.Longitude,
                     GrandTotal = 0,
                     OrderProducts = new List<OrderProduct>()
                 };
@@ -616,6 +618,8 @@ namespace NavbharatAgroAPI.Controllers
                 GrandTotal = orderBooking.GrandTotal,
                 BookingDate = orderBooking.BookingDate,
                 BookingTime = orderBooking.BookingTime,
+                Latitude = orderBooking.Latitude,
+                Longitude = orderBooking.Longitude,
                 Products = orderBooking.OrderProducts?.Select(p => new OrderProductResponseDto
                 {
                     Id = p.Id,

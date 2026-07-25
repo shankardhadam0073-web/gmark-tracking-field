@@ -39,14 +39,28 @@ namespace NavbharatAgroAPI.Controllers
         {
             try
             {
-                var employees = await _context.Employees.ToListAsync();
-                return Ok(employees.Select(e => new EmployeeResponseDto
+                var employees = await _context.Employees
+                    .Where(e => e.EmployeeCode != "EMP002" && (e.Name == null || !e.Name.ToLower().Contains("prutivraj")))
+                    .ToListAsync();
+
+                // Group by normalized name (stripping ' Employee' and whitespace) and select first per unique name
+                var uniqueEmployees = employees
+                    .GroupBy(e => (e.Name ?? "").Replace(" Employee", "", StringComparison.OrdinalIgnoreCase).Trim().ToLower())
+                    .Select(g => g.First())
+                    .OrderBy(e => e.Id)
+                    .ToList();
+
+                return Ok(uniqueEmployees.Select(e => new EmployeeResponseDto
                 {
                     Id = e.Id,
                     Name = e.Name,
                     EmployeeCode = e.EmployeeCode,
                     MobileNumber = e.MobileNumber,
                     AssignedArea = e.AssignedArea,
+                    TripStatus = e.TripStatus ?? "Not Started",
+                    TripStartTime = e.TripStartTime,
+                    TripEndTime = e.TripEndTime,
+                    SelectedRouteCode = e.SelectedRouteCode,
                     CreatedAt = e.CreatedAt,
                     Message = "Retrieved Successfully"
                 }));
@@ -86,6 +100,10 @@ namespace NavbharatAgroAPI.Controllers
                     EmployeeCode = employee.EmployeeCode,
                     MobileNumber = employee.MobileNumber,
                     AssignedArea = employee.AssignedArea,
+                    TripStatus = employee.TripStatus ?? "Not Started",
+                    TripStartTime = employee.TripStartTime,
+                    TripEndTime = employee.TripEndTime,
+                    SelectedRouteCode = employee.SelectedRouteCode,
                     CreatedAt = employee.CreatedAt,
                     Message = "Retrieved Successfully"
                 });
@@ -255,6 +273,94 @@ namespace NavbharatAgroAPI.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while deleting employee with Id {Id}.", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+            }
+        }
+
+        /// <summary>
+        /// Starts trip for an employee and records start time and route code.
+        /// </summary>
+        [HttpPut("{id}/start-trip")]
+        public async Task<ActionResult<EmployeeResponseDto>> StartTrip(int id, [FromBody] StartTripRequestDto? request)
+        {
+            try
+            {
+                var employee = await _context.Employees.FindAsync(id);
+                if (employee == null)
+                {
+                    return NotFound(new { message = $"Employee with Id {id} not found." });
+                }
+
+                employee.TripStatus = "Started";
+                employee.TripStartTime = DateTime.Now;
+                if (!string.IsNullOrWhiteSpace(request?.RouteCode))
+                {
+                    employee.SelectedRouteCode = request.RouteCode;
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new EmployeeResponseDto
+                {
+                    Id = employee.Id,
+                    Name = employee.Name,
+                    EmployeeCode = employee.EmployeeCode,
+                    MobileNumber = employee.MobileNumber,
+                    AssignedArea = employee.AssignedArea,
+                    TripStatus = employee.TripStatus,
+                    TripStartTime = employee.TripStartTime,
+                    TripEndTime = employee.TripEndTime,
+                    SelectedRouteCode = employee.SelectedRouteCode,
+                    CreatedAt = employee.CreatedAt,
+                    Message = "Trip Started Successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while starting trip for employee Id {Id}.", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+            }
+        }
+
+        /// <summary>
+        /// Saves custom route for an employee without starting the trip.
+        /// </summary>
+        [HttpPut("{id}/save-route")]
+        public async Task<ActionResult<EmployeeResponseDto>> SaveRoute(int id, [FromBody] StartTripRequestDto? request)
+        {
+            try
+            {
+                var employee = await _context.Employees.FindAsync(id);
+                if (employee == null)
+                {
+                    return NotFound(new { message = $"Employee with Id {id} not found." });
+                }
+
+                if (!string.IsNullOrWhiteSpace(request?.RouteCode))
+                {
+                    employee.SelectedRouteCode = request.RouteCode;
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new EmployeeResponseDto
+                {
+                    Id = employee.Id,
+                    Name = employee.Name,
+                    EmployeeCode = employee.EmployeeCode,
+                    MobileNumber = employee.MobileNumber,
+                    AssignedArea = employee.AssignedArea,
+                    TripStatus = employee.TripStatus ?? "Not Started",
+                    TripStartTime = employee.TripStartTime,
+                    TripEndTime = employee.TripEndTime,
+                    SelectedRouteCode = employee.SelectedRouteCode,
+                    CreatedAt = employee.CreatedAt,
+                    Message = "Route Saved Successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while saving route for employee Id {Id}.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
             }
         }

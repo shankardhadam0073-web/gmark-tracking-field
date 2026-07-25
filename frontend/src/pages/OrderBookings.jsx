@@ -1,22 +1,27 @@
 import { useState, useEffect } from 'react';
 import { createOrderBooking, getProducts } from '../services/api';
+import { getActiveRoute, isTripStarted } from '../utils/routeHelper';
 import { useNavigate } from 'react-router-dom';
 import Input from '../components/Input';
 import Select from '../components/Select';
+import BottomNav from '../components/BottomNav';
+import DesktopSidebar from '../components/DesktopSidebar';
 
 export default function OrderBookings() {
   const navigate = useNavigate();
-  
-  // Initial state setup to match potential ASP.NET Core DTO structure
+
+  // Initial state setup to match ASP.NET Core DTO structure
   const initialState = {
     employeeId: localStorage.getItem('employeeId') || '',
-    assignedBy: localStorage.getItem('employeeName') || '', // newly added field
-    route: localStorage.getItem('employeeRoute') || '',
+    assignedBy: localStorage.getItem('employeeName') || '',
+    route: '',
     customerName: '',
     village: '',
     mobileNumber: '',
     customerCategory: '',
-    products: [{ productName: '', quantity: 1 }]
+    products: [{ productName: '', quantity: 1 }],
+    latitude: null,
+    longitude: null
   };
 
   const [formData, setFormData] = useState(initialState);
@@ -25,6 +30,33 @@ export default function OrderBookings() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
   const [apiProducts, setApiProducts] = useState([]);
+  const [isLocating, setIsLocating] = useState(false);
+  const [displayTime, setDisplayTime] = useState(new Date());
+
+  // Verify employee login session on mount and load today's active assigned route
+  useEffect(() => {
+    const currentEmpId = localStorage.getItem('employeeId') || localStorage.getItem('rememberedEmployeeId');
+    const currentEmpName = localStorage.getItem('employeeName') || localStorage.getItem('rememberedEmployeeName');
+
+    if (!currentEmpId || !currentEmpName) {
+      navigate('/welcome', { replace: true });
+      return;
+    }
+
+    const activeRoute = getActiveRoute(currentEmpName, currentEmpId);
+    const tripStarted = isTripStarted(currentEmpId);
+
+    if (!tripStarted && !localStorage.getItem(`activeRoute_${currentEmpId}`)) {
+      setApiError("Please start today's trip to load your assigned route.");
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      employeeId: currentEmpId,
+      assignedBy: currentEmpName,
+      route: activeRoute
+    }));
+  }, [navigate]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -37,6 +69,45 @@ export default function OrderBookings() {
     };
     fetchProducts();
   }, []);
+
+  // Update live clock until location is captured
+  useEffect(() => {
+    if (formData.latitude && formData.longitude) return;
+
+    const timer = setInterval(() => {
+      setDisplayTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [formData.latitude, formData.longitude]);
+
+  const captureLocation = () => {
+    setIsLocating(true);
+    if (errors.location) setErrors(prev => ({ ...prev, location: null }));
+    if (apiError) setApiError('');
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const now = new Date();
+          setFormData(prev => ({
+            ...prev,
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          }));
+          setDisplayTime(now);
+          setIsLocating(false);
+        },
+        (error) => {
+          setErrors(prev => ({ ...prev, location: "Failed to get location: " + error.message }));
+          setIsLocating(false);
+        },
+        { enableHighAccuracy: true }
+      );
+    } else {
+      setErrors(prev => ({ ...prev, location: "Geolocation is not supported by your browser" }));
+      setIsLocating(false);
+    }
+  };
 
   // Hide success message after 5 seconds automatically
   useEffect(() => {
@@ -83,7 +154,7 @@ export default function OrderBookings() {
       updatedProducts[index] = { ...updatedProducts[index], [field]: value };
       return { ...prev, products: updatedProducts };
     });
-    
+
     const errorKey = `${field}_${index}`;
     if (errors[errorKey]) setErrors(prev => ({ ...prev, [errorKey]: null }));
     if (showSuccess) setShowSuccess(false);
@@ -124,6 +195,7 @@ export default function OrderBookings() {
       newErrors.mobileNumber = "Must be exactly 10 digits";
     }
     if (!formData.customerCategory) newErrors.customerCategory = "Customer Category is required";
+    if (!formData.latitude || !formData.longitude) newErrors.location = "Please click '📍 Capture Location' before submitting";
 
     formData.products.forEach((product, index) => {
       if (!product.productName.trim()) newErrors[`productName_${index}`] = "Required";
@@ -136,60 +208,68 @@ export default function OrderBookings() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      const now = new Date();
-      
-      const payload = {
-        employeeId: parseInt(formData.employeeId, 10),
-        assignedBy: formData.assignedBy,
-        route: formData.route,
-        customerName: formData.customerName,
-        village: formData.village,
-        mobileNumber: formData.mobileNumber,
-        customerCategory: formData.customerCategory,
-        products: formData.products.map(p => {
-          const qty = parseInt(p.quantity) || 0;
-          const defaultUnitPrice = getUnitPrice(p.productName, formData.customerCategory);
-          const activeUnitPrice = p.unitPrice !== undefined ? p.unitPrice : defaultUnitPrice;
-          return {
-            productName: p.productName,
-            quantity: qty,
-            unitPrice: activeUnitPrice
-          };
-        }),
-        bookingDate: now.toLocaleDateString('en-CA'), // YYYY-MM-DD format
-        bookingTime: now.toLocaleTimeString('en-US', { hour12: false }) // HH:mm:ss format
-      };
 
-      setIsSubmitting(true);
-      setApiError('');
-      
-      try {
-        await createOrderBooking(payload);
-        setShowSuccess(true);
-        setFormData(initialState);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } catch (err) {
-        console.error("API error full details:", err.response || err);
-        
-        let errorMessage = 'An error occurred while submitting.';
-        if (err.response?.data) {
-          if (err.response.data.message) {
-            errorMessage = err.response.data.message;
-          } else if (err.response.data.errors) {
-            const validationErrors = Object.values(err.response.data.errors).flat().join(', ');
-            errorMessage = `Validation Error: ${validationErrors}`;
-          } else if (err.response.data.title) {
-            errorMessage = err.response.data.title;
-          }
-        } else if (err.message) {
-          errorMessage = err.message;
-        }
-        
-        setApiError(errorMessage);
-      } finally {
-        setIsSubmitting(false);
+    if (!validateForm()) {
+      if (!formData.latitude || !formData.longitude) {
+        setApiError("Please click '📍 Capture Location' to attach your GPS coordinates before submitting.");
       }
+      return;
+    }
+
+    const now = new Date();
+
+    const payload = {
+      employeeId: parseInt(formData.employeeId, 10),
+      assignedBy: formData.assignedBy,
+      route: formData.route,
+      customerName: formData.customerName,
+      village: formData.village,
+      mobileNumber: formData.mobileNumber,
+      customerCategory: formData.customerCategory,
+      latitude: formData.latitude,
+      longitude: formData.longitude,
+      products: formData.products.map(p => {
+        const qty = parseInt(p.quantity) || 0;
+        const defaultUnitPrice = getUnitPrice(p.productName, formData.customerCategory);
+        const activeUnitPrice = p.unitPrice !== undefined ? p.unitPrice : defaultUnitPrice;
+        return {
+          productName: p.productName,
+          quantity: qty,
+          unitPrice: activeUnitPrice
+        };
+      }),
+      bookingDate: now.toLocaleDateString('en-CA'), // YYYY-MM-DD format
+      bookingTime: now.toLocaleTimeString('en-US', { hour12: false }) // HH:mm:ss format
+    };
+
+    setIsSubmitting(true);
+    setApiError('');
+
+    try {
+      await createOrderBooking(payload);
+      setShowSuccess(true);
+      setFormData(initialState);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      console.error("API error full details:", err.response || err);
+
+      let errorMessage = 'An error occurred while submitting.';
+      if (err.response?.data) {
+        if (err.response.data.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.response.data.errors) {
+          const validationErrors = Object.values(err.response.data.errors).flat().join(', ');
+          errorMessage = `Validation Error: ${validationErrors}`;
+        } else if (err.response.data.title) {
+          errorMessage = err.response.data.title;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setApiError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -201,12 +281,13 @@ export default function OrderBookings() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col p-4 md:p-8">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:pl-64 p-4 md:p-8 pb-20 md:pb-8 transition-all">
+      <DesktopSidebar />
       <div className="max-w-4xl mx-auto w-full">
-        
+
         {/* Header */}
         <div className="flex items-center mb-8 gap-4">
-          <button 
+          <button
             onClick={() => navigate('/employee-dashboard')}
             className="p-2 bg-white hover:bg-slate-100 shadow-sm border border-slate-200 rounded-full transition-colors active:scale-95"
             type="button"
@@ -259,47 +340,55 @@ export default function OrderBookings() {
 
         {/* Form Container */}
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-md border border-slate-100 overflow-hidden">
-          
+
           {/* Customer Details Section */}
           <div className="p-6 md:p-8 border-b border-slate-100 space-y-6">
             <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-blue-600"></div>
               Order Details
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
 
 
-              <Input 
-                label="Customer Name *" 
-                placeholder="Enter full name" 
+
+              <Input
+                label="Customer Name *"
+                placeholder="Enter full name"
                 value={formData.customerName ?? ''}
                 onChange={(e) => handleInputChange('customerName', e.target.value)}
                 error={errors.customerName}
               />
-              <Input 
-                label="Mobile Number *" 
+              <Input
+                label="Mobile Number *"
                 type="tel"
-                placeholder="10 digit number" 
+                placeholder="10 digit number"
                 maxLength={10}
                 value={formData.mobileNumber ?? ''}
                 onChange={(e) => handleInputChange('mobileNumber', e.target.value.replace(/\D/g, ''))}
                 error={errors.mobileNumber}
               />
-              <Select 
-                label="Customer Category *" 
+              <Select
+                label="Customer Category *"
                 options={categoryOptions}
                 value={formData.customerCategory ?? ''}
                 onChange={(e) => handleInputChange('customerCategory', e.target.value)}
                 error={errors.customerCategory}
               />
-              <Input 
-                label="Village *" 
-                placeholder="Enter village name" 
+              <Input
+                label="Village *"
+                placeholder="Enter village name"
                 value={formData.village ?? ''}
                 onChange={(e) => handleInputChange('village', e.target.value)}
                 error={errors.village}
+              />
+              <Input
+                label="Route *"
+                placeholder="Today's assigned route"
+                value={formData.route ?? ''}
+                readOnly={true}
+                className="bg-slate-100/70 text-slate-700 font-semibold cursor-not-allowed"
+                error={errors.route}
               />
 
             </div>
@@ -312,8 +401,8 @@ export default function OrderBookings() {
                 <div className="h-2 w-2 rounded-full bg-blue-600"></div>
                 Products
               </h2>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={addProduct}
                 className="text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 active:scale-95"
               >
@@ -329,15 +418,15 @@ export default function OrderBookings() {
                 const defaultUnitPrice = getUnitPrice(product.productName, formData.customerCategory);
                 const activeUnitPrice = product.unitPrice !== undefined ? product.unitPrice : defaultUnitPrice;
                 const rowTotal = (parseInt(product.quantity) || 0) * (parseFloat(activeUnitPrice) || 0);
-                
+
                 return (
                   <div key={index} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative group transition-shadow hover:shadow-md">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-5 items-end">
-                      
+
                       {/* 1. Product Name */}
                       <div className="sm:col-span-2 md:col-span-4">
-                        <Select 
-                          label="Product Name" 
+                        <Select
+                          label="Product Name"
                           options={productOptions}
                           value={product.productName ?? ''}
                           onChange={(e) => {
@@ -348,12 +437,12 @@ export default function OrderBookings() {
                           error={errors[`productName_${index}`]}
                         />
                       </div>
-                      
+
                       {/* 2. Unit Price (Editable) */}
                       <div className="md:col-span-3">
-                        <Input 
-                          label="Unit Price (₹)" 
-                          type="number" 
+                        <Input
+                          label="Unit Price (₹)"
+                          type="number"
                           step="0.01"
                           min="0"
                           value={activeUnitPrice === 0 && product.unitPrice === undefined ? '' : activeUnitPrice}
@@ -363,16 +452,16 @@ export default function OrderBookings() {
 
                       {/* 3. Quantity */}
                       <div className="md:col-span-2">
-                        <Input 
-                          label="Quantity" 
-                          type="number" 
+                        <Input
+                          label="Quantity"
+                          type="number"
                           min="1"
                           value={product.quantity ?? ''}
                           onChange={(e) => handleProductChange(index, 'quantity', parseInt(e.target.value) || '')}
                           error={errors[`quantity_${index}`]}
                         />
                       </div>
-                      
+
                       {/* 4. Row Total (Read Only Display) */}
                       <div className="sm:col-span-2 md:col-span-3 pt-2 md:pt-0 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 h-[66px] flex flex-col justify-center">
                         <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-0.5">Row Total</div>
@@ -382,7 +471,7 @@ export default function OrderBookings() {
                       </div>
 
                     </div>
-                    
+
                     {formData.products.length > 1 && (
                       <button
                         type="button"
@@ -411,15 +500,78 @@ export default function OrderBookings() {
             </div>
           </div>
 
+          {/* GPS Location Section */}
+          <div className="p-6 md:p-8 bg-blue-50/50 border-t border-slate-100">
+            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-6">
+              <div className="h-2 w-2 rounded-full bg-blue-600"></div>
+              Location Verification
+            </h2>
+
+            <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-6 justify-between">
+              
+              <div className="flex-1 w-full space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm">
+                  <span className="text-slate-500 font-medium w-24">Date & Time:</span>
+                  <span className="font-semibold text-slate-800 bg-slate-100 px-3 py-1 rounded-md">
+                    {displayTime.toLocaleDateString('en-CA')} &bull; {displayTime.toLocaleTimeString('en-US')}
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm">
+                  <span className="text-slate-500 font-medium w-24">Coordinates:</span>
+                  {formData.latitude && formData.longitude ? (
+                    <span className="font-mono text-blue-700 bg-blue-50 px-3 py-1 rounded-md flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                      </svg>
+                      {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+                    </span>
+                  ) : (
+                    <span className="text-amber-600 bg-amber-50 px-3 py-1 rounded-md text-xs font-medium">
+                      Not captured yet
+                    </span>
+                  )}
+                </div>
+                {errors.location && (
+                  <p className="text-red-500 text-sm font-medium mt-2">{errors.location}</p>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={captureLocation}
+                disabled={isLocating}
+                className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 shadow-sm"
+              >
+                {isLocating ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5 text-blue-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Locating...
+                  </span>
+                ) : formData.latitude ? (
+                  <span className="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                    </svg>
+                    Retake Location
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    </svg>
+                    Get Location
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
           {/* Action Buttons */}
           <div className="p-6 md:p-8 border-t border-slate-100 bg-slate-50 flex flex-col-reverse sm:flex-row justify-end gap-4">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="px-6 py-3 rounded-xl font-semibold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 transition-colors w-full sm:w-auto active:scale-95"
-            >
-              Reset Form
-            </button>
+
             <button
               type="submit"
               disabled={isSubmitting}
@@ -446,8 +598,8 @@ export default function OrderBookings() {
 
         </form>
 
-
       </div>
+      <BottomNav />
     </div>
   );
 }

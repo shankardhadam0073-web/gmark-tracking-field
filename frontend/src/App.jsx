@@ -11,24 +11,36 @@ import EmployeeDetail from './pages/EmployeeDetail';
 import OrderBookings from './pages/OrderBookings';
 import FieldVisits from './pages/FieldVisits';
 import CancelledOrders from './pages/CancelledOrders';
+import RoutesPage from './pages/RoutesPage';
+
+function RootRedirect() {
+  const rememberedName = localStorage.getItem('rememberedEmployeeName') || localStorage.getItem('employeeName');
+  const rememberedId = localStorage.getItem('rememberedEmployeeId') || localStorage.getItem('employeeId');
+
+  if (rememberedName && rememberedId) {
+    return <Navigate to="/employee-password" replace />;
+  }
+  return <Navigate to="/welcome" replace />;
+}
 
 function App() {
   return (
     <Router>
-
       <Routes>
-        <Route path="/" element={<Navigate to="/welcome" replace />} />
+        <Route path="/" element={<RootRedirect />} />
         <Route path="/welcome" element={<Welcome />} />
-        <Route path="/role-selection" element={<RoleSelection />} />
-        <Route path="/employee-selection" element={<EmployeeSelection />} />
+        <Route path="/role-selection" element={<Navigate to="/welcome" replace />} />
+        <Route path="/employee-selection" element={<Navigate to="/welcome" replace />} />
         <Route path="/employee-password" element={<EmployeePassword />} />
         <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
         <Route path="/pending-orders" element={<PendingOrders />} />
         <Route path="/delivered-orders" element={<DeliveredOrders />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/employee-status" element={<AdminDashboard initialTab="employee-status" />} />
         <Route path="/admin-dashboard/employee/:id" element={<EmployeeDetail />} />
         <Route path="/order-bookings" element={<OrderBookings />} />
         <Route path="/field-visits" element={<FieldVisits />} />
+        <Route path="/routes" element={<RoutesPage />} />
         <Route path="/cancelled-orders" element={<CancelledOrders />} />
       </Routes>
     </Router>

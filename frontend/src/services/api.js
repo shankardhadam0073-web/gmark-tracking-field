@@ -30,6 +30,8 @@ export const getEmployee = (id) => api.get(`/employees/${id}`).then(res => res.d
 export const createEmployee = (data) => api.post('/employees', data).then(res => res.data);
 export const updateEmployee = (id, data) => api.put(`/employees/${id}`, data).then(res => res.data);
 export const deleteEmployee = (id) => api.delete(`/employees/${id}`).then(res => res.data);
+export const startTrip = (id, routeCode) => api.put(`/employees/${id}/start-trip`, { routeCode }).then(res => res.data);
+export const saveEmployeeRoute = (id, routeCode) => api.put(`/employees/${id}/save-route`, { routeCode }).then(res => res.data);
 
 // --- Auth API ---
 export const loginEmployee = (data) => api.post('/auth/employee-login', data).then(res => res.data);
