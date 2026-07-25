@@ -1,0 +1,15 @@
+{
+  "employeeId": 999,
+  "assignedBy": "Manager",
+  "route": "Test Route X",
+  "customerName": "Alice",
+  "village": "Test Village",
+  "mobileNumber": "0987654321",
+  "customerCategory": "Farmer",
+  "productDiscussed": "Tractor",
+  "shortNote": "Interested in buying next month",
+  "latitude": 18.5204,
+  "longitude": 73.8567,
+  "visitDate": "2026-07-16",
+  "visitTime": "10:15:00"
+}
